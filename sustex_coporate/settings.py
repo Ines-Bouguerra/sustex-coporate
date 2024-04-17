@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-u3+-8octbnjgnqgve73pb2i_*d&_)5fpa=4nq4^oos1797((oe
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+DEBUG = True
+CORS_ALLOWED_ORIGINS = [
+ 'http://*'
+    
+]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'usermanagement',
+    'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
