@@ -1,7 +1,12 @@
 # myproject/urls.py
 from django.urls import path
-from .views import CustomUserCreate,login_view
+import views
 urlpatterns = [
-    path('addUser/', CustomUserCreate.as_view(), name='user-create'),
-    path('login/', login_view, name='login'),
+    path('login/', views.authentication, name='login'),
+    path('getAllUsers', views.getAllUsers, name="getAllUsers"),
+    path('getUser/<int:id>', views.getUser, name="getUser"),
+    path('createUser', views.createUser, name="createUser"),
+    path('deleteUser/<int:id>', views.delete_user, name="deleteUser"),
+    path('modifyUser/<int:id>', views.modifyUser, name="modifyUser"),
+    path('userChangePW/<int:id>', views.changePassword, name="userChangePW"),
 ]
