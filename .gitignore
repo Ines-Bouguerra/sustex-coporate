@@ -1,3 +1,5 @@
 venv
 __pycache__/
 .vscode/
+usermanagement/__pycache__/
+usermanagement/migrations/__pycache__/
