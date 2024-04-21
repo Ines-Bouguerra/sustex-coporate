@@ -1,6 +1,6 @@
 # myproject/urls.py
 from django.urls import path
-import views
+from usermanagement import views
 urlpatterns = [
     path('login/', views.authentication, name='login'),
     path('getAllUsers', views.getAllUsers, name="getAllUsers"),

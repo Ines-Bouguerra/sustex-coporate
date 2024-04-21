@@ -25,13 +25,16 @@ SECRET_KEY = 'django-insecure-u3+-8octbnjgnqgve73pb2i_*d&_)5fpa=4nq4^oos1797((oe
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-DEBUG = True
 CORS_ALLOWED_ORIGINS = [
  'http://*'
     
 ]
 ALLOWED_HOSTS = ['*']
-
+DEBUG=True
+# DB_HOST='mongodb+srv://inesbouguerra22:sustexcoporateesg2024@sustex0.2o8hscb.mongodb.net/?retryWrites=true&w=majority&appName=sustex0'
+# DB_NAME='sustex0'
+# DB_USER='inesbouguerra22'
+# DB_PASSWORD='sustexcoporateesg2024'
 
 # Application definition
 

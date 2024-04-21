@@ -99,7 +99,7 @@ def delete_user(request, id):
         return JsonResponse({"msg":"User deleted successfully!"}, status=status.HTTP_200_OK)
     
         
-@swagger_auto_schema('POST', responses={200: 'Created', 400: 'Bad Request'}, 
+@swagger_auto_schema('PUT', responses={200: 'Created', 400: 'Bad Request'}, 
                     request_body=UpdateUserSerializer,
                      operation_summary="API TO UPDATE  USER",
                      operation_description="API TO UPDATE  USER",)
