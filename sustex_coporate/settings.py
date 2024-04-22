@@ -51,8 +51,14 @@ INSTALLED_APPS = [
     'usermanagement',
     'drf_yasg',
     'corsheaders',
+    'channels',
+    
 ]
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # You can use other backends as needed
+    },
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -81,7 +87,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'sustex_coporate.wsgi.application'
+WSGI_APPLICATION = 'sustex_coporate.asgi.application'
 
 
 # Database
