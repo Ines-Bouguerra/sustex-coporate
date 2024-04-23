@@ -33,10 +33,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 ALLOWED_HOSTS = ['*']
 DEBUG=True
-# DB_HOST='mongodb+srv://inesbouguerra22:sustexcoporateesg2024@sustex0.2o8hscb.mongodb.net/?retryWrites=true&w=majority&appName=sustex0'
-# DB_NAME='sustex0'
-# DB_USER='inesbouguerra22'
-# DB_PASSWORD='sustexcoporateesg2024'
 
 # Application definition
 
@@ -56,6 +52,7 @@ INSTALLED_APPS = [
     'channels',
     
 ]
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",  # You can use other backends as needed
@@ -63,14 +60,24 @@ CHANNEL_LAYERS = {
 }
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+AUTH_USER_MODEL = "usermanagement.User"
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 ROOT_URLCONF = 'sustex_coporate.urls'
 
 TEMPLATES = [
@@ -89,7 +96,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'sustex_coporate.asgi.application'
+ASGI_APPLICATION = 'sustex_coporate.asgi.application'
 
 
 # Database

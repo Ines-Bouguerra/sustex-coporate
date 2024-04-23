@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from usermanagement.functions import CustomValidator
 from usermanagement.models import User
-from .serializers import CustomUserSerializer, PasswordSerializer, UpdateUserSerializer
+from .serializers import CustomUserSerializer, UpdateUserSerializer
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
@@ -20,6 +20,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth.hashers import make_password
 from drf_yasg.utils import swagger_auto_schema
 from django.core.exceptions import ValidationError
+from drf_yasg import openapi
+from django.contrib.sessions.models import Session
+from django.contrib.auth import logout
 
 @swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
                      operation_summary="API TO GET LIST OF Users",
@@ -72,17 +75,18 @@ def getUser(request, id):
                      operation_description="API TO Create New USER",)
 
 @api_view(['POST'])
-@authentication_classes([AllowAny])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny]) 
 def createUser(request):
     """Create user"""
     if request.method == 'POST':
         data = request.data
         serializer = CustomUserSerializer(data=data)
         if serializer.is_valid():
+            data['password']=make_password(data.get('password'))
             serializer.save()
             return JsonResponse({"msg":"User added successfully!"}, status=status.HTTP_201_CREATED)
-        return JsonResponse({"msg":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return JsonResponse({"msg":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
       
 @swagger_auto_schema('DELETE', responses={200: 'Created', 400: 'Bad Request'}, 
@@ -105,10 +109,10 @@ def delete_user(request, id):
                      operation_description="API TO UPDATE  USER",)
 @api_view(['PUT'])
 @authentication_classes([SessionAuthentication])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def modifyUser(request, id):
     if (request.method == 'PUT'):
-        user_object = User.objects.filter(id=id)
+        user_object = User.objects.get(id=id)
         data = request.data
         serializer = UpdateUserSerializer(user_object,data=data)
         if serializer.is_valid():
@@ -119,10 +123,18 @@ def modifyUser(request, id):
 
 @swagger_auto_schema(
     method='PUT',
-    request_body=PasswordSerializer,
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['old_password', 'new_password'],
+        properties={
+            'old_password': openapi.Schema(type=openapi.TYPE_STRING),
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING),
+            'confirm_password': openapi.Schema(type=openapi.TYPE_STRING),
+        }
+    ),
     responses={200: 'Created', 400: 'Bad Request'},
-    operation_summary="API TO UPDATE Change Password User ",
-    operation_description="This API help us to update User's password added ",
+    operation_summary="API TO UPDATE Change Password User",
+    operation_description="This API helps us to update User's password."
 )
 
 @api_view(['PUT'])
@@ -153,20 +165,46 @@ def changePassword(request, id):
                     msg = "Your old password is incorrect!"
                     status=400  
             return JsonResponse({"msg": msg},status=status)
-
+        
+@swagger_auto_schema(
+    method='POST',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['username', 'password'],
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING),
+        }
+    ),
+    responses={200: 'Created', 400: 'Bad Request'},
+    operation_summary="This API helps us to authenticate ",
+    operation_description="This API helps us to authenticate "
+)
 @api_view(['POST'])
-@authentication_classes([AllowAny])
+@permission_classes([AllowAny]) 
 def authentication(request):
     if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        user = authenticate(request, email=email, password=password)
+        data=request.data
+        username = data['username']
+        password = data['password']
+        user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             # Redirect to a success page.
-            return redirect('success_page')
+            return JsonResponse({"msg": "User logged successfully!"},status=200)
+            # return redirect('success_page')
         else:
             # Return an 'invalid login' error message.
-            return render(request, 'login.html', {'error': 'Invalid email or password'})
-    else:
-        return render(request, 'login.html')
+            # return render(request, 'login.html', {'error': 'Invalid email or password'})
+            return JsonResponse({"msg": "Invalid email or password!"},status=200)
+            
+    # else:
+    #     return render(request, 'login.html')
+@api_view(['POST'])
+@authentication_classes([SessionAuthentication])  
+def logout_view(request):
+    logout(request)
+    # clear the user's session data
+    Session.objects.filter(session_key=request.session.session_key).delete()  
+    return JsonResponse({"msg": "User logged out successfully!"},status=200)
+            

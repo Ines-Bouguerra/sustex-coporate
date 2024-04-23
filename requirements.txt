@@ -8,3 +8,5 @@ python-dotenv==1.0.1
 pytz==2024.1
 sqlparse==0.2.4
 tzdata==2024.1
+channels==3.0.5
+drf-yasg==1.21.7

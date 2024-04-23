@@ -9,7 +9,7 @@ from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
 import seaborn as sns
 # Download nltk punkt package for tokenizers
-nltk.download('punkt')
+# nltk.download('punkt')
 ###
 def translate_text(text,language):
     """function to translate text to be compatible with models"""
