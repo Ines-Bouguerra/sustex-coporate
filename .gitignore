@@ -1,3 +1,12 @@
+venv
+__pycache__/
+.vscode/
+
+usermanagement/__pycache__/
+usermanagement/migrations/__pycache__/
+
+esganalyse/__pycache__/
+esganalyse/migrations/__pycache__/
 # ignore all files in the venv directory
 venv/*
 !venv/
