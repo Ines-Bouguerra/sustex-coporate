@@ -4,6 +4,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from esganalyse import consumers
+from django.conf import settings
+from django.conf.urls.static import static
 schema_view = get_schema_view(
     openapi.Info(
         title="My API",
@@ -21,7 +23,8 @@ urlpatterns = [
     path('',include('sustexcoporateapp.urls')),
     path('admin/', admin.site.urls),
     path('user/',include('usermanagement.urls')),
-]
+    path('esg',include('esganalyse.urls'))
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # ws/wss url patterns
 websocket_urlpatterns = [
     # consumer for a particular user
