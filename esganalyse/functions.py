@@ -11,6 +11,14 @@ import seaborn as sns
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
 ###
+from django.core.files.storage import FileSystemStorage
+
+def save_uploaded_file(uploaded_file):
+    fs = FileSystemStorage()
+    filename = fs.save(uploaded_file.name, uploaded_file)
+    return fs.path(filename)
+
+
 def translate_text(text,language):
     """function to translate text to be compatible with models"""
     translator = Translator()
@@ -127,27 +135,27 @@ def calculate_esg_scores(row):
     ##
     governance_score=0
     # Calculate individual scores for each category
-    if row['label']=='environmental':
-        environmental_score = round((environmental_sentiment_weight * row['sentiment_score']) + (environmental_classification_weight * row['score_classification']),2)
-    elif row['label']=='social':
-        social_score = round((social_sentiment_weight * row['sentiment_score']) + (social_classification_weight * row['score_classification']),2)
+    if row['category']=='environmental':
+        environmental_score = round((environmental_sentiment_weight * row['score_sentiment']) + (environmental_classification_weight * row['score_class']),2)
+    elif row['category']=='social':
+        social_score = round((social_sentiment_weight * row['score_sentiment']) + (social_classification_weight * row['score_class']),2)
     else:
-        governance_score = round((governance_sentiment_weight * row['sentiment_score']) + (governance_classification_weight * row['score_classification']),2)
+        governance_score = round((governance_sentiment_weight * row['score_sentiment']) + (governance_classification_weight * row['score_class']),2)
     return environmental_score, social_score, governance_score
 
 def get_total_classes(label,all_data_sentiment):
-    total_label = all_data_sentiment[all_data_sentiment['label'] == label].shape[0]
+    total_label = all_data_sentiment[all_data_sentiment['category'] == label].shape[0]
     return total_label
 
 def get_total_sent(label,label_sent,all_data_sentiment):
-    total_sent = all_data_sentiment[(all_data_sentiment['label'] == label) & (all_data_sentiment['sentiment'] == label_sent)].shape[0]
+    total_sent = all_data_sentiment[(all_data_sentiment['category'] == label) & (all_data_sentiment['sentiment'] == label_sent)].shape[0]
     return total_sent
 
 def calculate_total_esg(all_data_sentiment):
     """calculate total esg """
-    total_e_score = all_data_sentiment['E_score'].sum()
-    total_s_score = all_data_sentiment['S_score'].sum()
-    total_g_score = all_data_sentiment['G_score'].sum()
+    total_e_score = all_data_sentiment['e_score'].sum()
+    total_s_score = all_data_sentiment['s_score'].sum()
+    total_g_score = all_data_sentiment['g_score'].sum()
     ###
     environmental_weight = 0.3
     social_weight = 0.3
