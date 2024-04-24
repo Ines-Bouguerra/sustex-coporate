@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'usermanagement',
     'esganalyse',
-  
+ 
   
     
 ]
@@ -132,6 +132,7 @@ DATABASES = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
