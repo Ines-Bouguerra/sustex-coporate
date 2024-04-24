@@ -7,13 +7,13 @@ from django.utils import timezone
 from usermanagement.functions import CustomValidator
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, username, password=None):
+    def create_user(self, email, password=None):
         """
         Creates and saves a User with the given username and password.
         """
         pass
 
-    def create_superuser(self, username, password=None):
+    def create_superuser(self, email, password=None):
         """
         Creates and saves a superuser with the given username and password.
         """
@@ -21,7 +21,7 @@ class MyUserManager(BaseUserManager):
 
 # Create your models here.
 class User(AbstractBaseUser):
-    # id = models.AutoField(primary_key=True) 
+    id = models.AutoField(primary_key=True) 
     username=models.CharField(max_length=200,null=False,unique=True, validators=[CustomValidator.validate_username])
     password=models.CharField(max_length=200,null=False,unique=True,validators=[CustomValidator.validate_password])
     email = models.EmailField(unique=True,validators=[CustomValidator.validate_email])
@@ -31,7 +31,7 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(default=timezone.now)
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'
 
     def __str__(self):
         return self.email

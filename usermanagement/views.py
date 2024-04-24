@@ -23,7 +23,7 @@ from django.core.exceptions import ValidationError
 from drf_yasg import openapi
 from django.contrib.sessions.models import Session
 from django.contrib.auth import logout
-
+from django.contrib.auth.backends import ModelBackend
 @swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
                      operation_summary="API TO GET LIST OF Users",
                      operation_description="API TO GET LIST OF Users",)
@@ -56,18 +56,18 @@ def getAllUsers(request):
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def getUser(request, id):
-    """Get user  by ID from database"""
-    if (request.method == 'GET'):
-        user = User.objects.filter(id=id)
-        user_dict = serializers.serialize("json", user)
-        res = json.loads(user_dict)
-        res[0].pop('model')
-        id = res[0]['pk']
-        res[0].pop('pk')
-        res[0]['fields'].pop('password')
-        res[0]['fields']['id'] = id
-        user_json = res[0]['fields']
-        return JsonResponse({"user": user_json})
+    """Get user by ID from database"""
+    if request.method == 'GET':
+        try:
+            user = User.objects.get(pk=id)
+            user_dict = serializers.serialize("json", [user])  # Serializing single object
+            res = json.loads(user_dict)
+            user_json = res[0]['fields']
+            user_json['id'] = res[0]['pk']
+            del user_json['password']  # Remove password field
+            return JsonResponse({"user": user_json})
+        except User.DoesNotExist:
+            return JsonResponse({"msg": "User not found!"}, status=404)
 
 @swagger_auto_schema('POST', responses={200: 'Created', 400: 'Bad Request'}, 
                     request_body=CustomUserSerializer,
@@ -80,9 +80,13 @@ def createUser(request):
     """Create user"""
     if request.method == 'POST':
         data = request.data
+        try:
+            CustomValidator.validate_password(data['password'])
+        except ValidationError as e:
+            return JsonResponse({"msg": str(e)},status=400)
+        data['password']=make_password(data.get('password'))
         serializer = CustomUserSerializer(data=data)
         if serializer.is_valid():
-            data['password']=make_password(data.get('password'))
             serializer.save()
             return JsonResponse({"msg":"User added successfully!"}, status=status.HTTP_201_CREATED)
         else:
@@ -98,10 +102,14 @@ def createUser(request):
 def delete_user(request, id):
     """Delete user """
     if (request.method == 'DELETE'):
-        user = User.objects.get(id=id)
-        user.delete()
-        return JsonResponse({"msg":"User deleted successfully!"}, status=status.HTTP_200_OK)
-    
+        if User.objects.filter(pk=id).exists():
+            user = User.objects.get(pk=id)
+            user.delete()
+            return JsonResponse({"msg":"User deleted successfully!"}, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({"msg":"User not found !"}, status=status.HTTP_404_NOT_FOUND)
+            
+        
         
 @swagger_auto_schema('PUT', responses={200: 'Created', 400: 'Bad Request'}, 
                     request_body=UpdateUserSerializer,
@@ -109,17 +117,19 @@ def delete_user(request, id):
                      operation_description="API TO UPDATE  USER",)
 @api_view(['PUT'])
 @authentication_classes([SessionAuthentication])
-# @permission_classes([IsAuthenticated])
 def modifyUser(request, id):
-    if (request.method == 'PUT'):
-        user_object = User.objects.get(id=id)
+    if request.method == 'PUT':
+        try:
+            user_object = User.objects.get(pk=id)
+        except User.DoesNotExist:
+            return JsonResponse({"msg": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
+
         data = request.data
-        serializer = UpdateUserSerializer(user_object,data=data)
+        serializer = UpdateUserSerializer(user_object, data=data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({"msg":"User updated successfully!"}, status=status.HTTP_200_OK)
-        return JsonResponse({"msg":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+            return JsonResponse({"msg": "User updated successfully!"}, status=status.HTTP_200_OK)
+        return JsonResponse({"msg": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(
     method='PUT',
@@ -143,7 +153,7 @@ def modifyUser(request, id):
 def changePassword(request, id):
     msg = ""
     if (request.method == 'PUT'):
-            user_object = User.objects.get(id=id)
+            user_object = User.objects.get(pk=id)
             data = request.data
             old_password = data['old_password']
             new_password = data['new_password']
@@ -151,12 +161,13 @@ def changePassword(request, id):
             try:
                 CustomValidator.validate_password(new_password)
             except ValidationError as e:
-                return JsonResponse({"msg": str(e)},status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"msg": str(e)},status=400)
             if new_password != confirm_password:
                 msg = "Passwords do not match. Please try again."
+                status=400
             else:
-                check_password=check_password(old_password,user_object.password)
-                if check_password:
+                check_password_var=check_password(old_password,user_object.password)
+                if check_password_var:
                     user_object.password = make_password(new_password)
                     user_object.save()
                     msg = "Password change successfully!"
@@ -165,14 +176,21 @@ def changePassword(request, id):
                     msg = "Your old password is incorrect!"
                     status=400  
             return JsonResponse({"msg": msg},status=status)
-        
+class EmailBackend(ModelBackend):
+    def authenticate(self, request, email=None, password=None, **kwargs):
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                return user
+        except User.DoesNotExist:
+            return None      
 @swagger_auto_schema(
     method='POST',
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        required=['username', 'password'],
+        required=['email', 'password'],
         properties={
-            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'email': openapi.Schema(type=openapi.TYPE_STRING),
             'password': openapi.Schema(type=openapi.TYPE_STRING),
         }
     ),
@@ -180,14 +198,15 @@ def changePassword(request, id):
     operation_summary="This API helps us to authenticate ",
     operation_description="This API helps us to authenticate "
 )
+
 @api_view(['POST'])
 @permission_classes([AllowAny]) 
 def authentication(request):
     if request.method == 'POST':
         data=request.data
-        username = data['username']
+        email = data['email']
         password = data['password']
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
             # Redirect to a success page.
