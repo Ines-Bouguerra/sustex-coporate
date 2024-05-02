@@ -31,4 +31,5 @@ class CampanyDetailsSerializer(serializers.ModelSerializer):
             fields = ['factors','category','score_class',
                       'sentiment','score_sentiment',
                       'e_score','s_score','g_score',
+                      'campany'
                       ]

@@ -5,6 +5,7 @@ import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .serializers import CampanySerializer,CampanyDetailsSerializer
+from .models import Campany
 from django.db.models import Q
 from esganalyse.functions import extract_from_pdf,extract_text_page,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file
 import os
@@ -17,16 +18,19 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             "chart_group_global",
             self.channel_name,
         )
+        # asyncio.create_task(self.send(json.dumps({"msg":"hello from backend!"})))
         
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        year = text_data_json['id']
-        campany_name=text_data_json['password']
+        year = text_data_json['year']
+        campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
         
+        print(os.path.exists(file_path))
         if file_path and os.path.exists(file_path):
-            saved_file_path = save_uploaded_file(file_path)
-            asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,saved_file_path))
+            # saved_file_path = save_uploaded_file(file_path)
+            print("save uploaded file",file_path)
+            asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,file_path))
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -38,7 +42,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     ##function to save in database asynchrononsly
     @database_sync_to_async
     def save_system_usage(self, all_data_sentiment,document_data):
-        if not CampanySerializer.objects.filter(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year'])).exists():
+        if not Campany.objects.filter(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year'])).exists():
             # Create a serializer instance
             dashboard_serializer = CampanySerializer(data=document_data)
         else:
@@ -73,7 +77,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             pipe_soc=get_model("ESGBERT/SocialBERT-social" ,"text-classification")
             pipe_gov=get_model("ESGBERT/GovernanceBERT-governance","text-classification")
             pipe_sent=get_model("climatebert/distilroberta-base-climate-sentiment","text-classification")
-            pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","nlptown/bert-base-multilingual-uncased-sentiment")
+            pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","sentiment-analysis")
             for t in cleaned_sentence:
                 sentences_class.append(t)
                 label,score_class=classify_sentence_label(t,pipe_env,pipe_soc,pipe_gov)
@@ -84,7 +88,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                     labels_sent.append(sentiment_env[0]['label'])
                 else:
                     sentiment_env = pipe_other([t])
-                    labels_sent.append(get_sentiment(sentiment_env[0]['label']))
+                    labels_sent.append(get_sentiment(sentiment_env[0]['score']))
                 scores_sent.append(sentiment_env[0]['score'])
             data={
                 "factors":sentences_class,
@@ -92,11 +96,11 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 "score_class":scores_classes,
                 "sentiment":labels_sent,
                 "score_sentiment":scores_sent,
-                
             }
             all_data_sentiment = pd.DataFrame(data)
+            # all_data_sentiment = all_data_sentiment.dropna()
+            # print(all_data_sentiment)
             all_data_sentiment[['e_score', 's_score', 'g_score']] = all_data_sentiment.apply(calculate_esg_scores, axis=1, result_type='expand')
-            all_data_sentiment = all_data_sentiment.to_dict(orient='records')
             #####
             # entity=get_word_entity(cleaned_sentence)
             # campany_name=get_campany_name(entity)
@@ -126,13 +130,16 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 "total_g_score": total_g_score,
                 "total_esg_score": esg_score
             }
-            
+            all_data_sentiment = all_data_sentiment.where(pd.notna(all_data_sentiment), None)
+            # all_data_sentiment.fillna(value=None,inplace = True)
+            # print("hello1==>",all_data_sentiment)
+            all_data_sentiment = all_data_sentiment.to_dict(orient='records')
+            all_data_sentiment = [{k: v if not pd.isna(v) else None for k, v in d.items()} for d in all_data_sentiment]
             all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data}
             
-            await self.save_system_usage(data)
-            
+            # print("hello2==>",all_data)
             await self.send(json.dumps(all_data))
-            # await self.delete_data()
+            # await self.save_system_usage(all_data_sentiment,document_data)
             
             # Sleep for a while before sending the next data (adjust the interval as needed)
-            await asyncio.sleep(1)
+            await asyncio.sleep(60)
