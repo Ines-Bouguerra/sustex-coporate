@@ -35,7 +35,7 @@ class Campany(models.Model):
     def __str__(self):
             return self.campany_name
     class Meta:
-        db_table = 'Campany'
+        db_table = 'campany'
         
 class CampanyDetails(models.Model):
     id = models.AutoField(primary_key=True) 
