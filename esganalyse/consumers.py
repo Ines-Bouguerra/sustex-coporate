@@ -99,7 +99,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             }
             all_data_sentiment = pd.DataFrame(data)
             # all_data_sentiment = all_data_sentiment.dropna()
-            print(all_data_sentiment)
+            # print(all_data_sentiment)
             all_data_sentiment[['e_score', 's_score', 'g_score']] = all_data_sentiment.apply(calculate_esg_scores, axis=1, result_type='expand')
             #####
             # entity=get_word_entity(cleaned_sentence)
@@ -130,14 +130,16 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 "total_g_score": total_g_score,
                 "total_esg_score": esg_score
             }
+            all_data_sentiment = all_data_sentiment.where(pd.notna(all_data_sentiment), None)
+            # all_data_sentiment.fillna(value=None,inplace = True)
+            # print("hello1==>",all_data_sentiment)
             all_data_sentiment = all_data_sentiment.to_dict(orient='records')
-            
+            all_data_sentiment = [{k: v if not pd.isna(v) else None for k, v in d.items()} for d in all_data_sentiment]
             all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data}
             
-            
+            # print("hello2==>",all_data)
             await self.send(json.dumps(all_data))
-            # await self.delete_data()
-            await self.save_system_usage(all_data_sentiment,document_data)
+            # await self.save_system_usage(all_data_sentiment,document_data)
             
             # Sleep for a while before sending the next data (adjust the interval as needed)
-            await asyncio.sleep(1)
+            await asyncio.sleep(60)

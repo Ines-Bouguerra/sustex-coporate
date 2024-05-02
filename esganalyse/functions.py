@@ -138,8 +138,7 @@ def calculate_esg_scores(row):
     governance_score=0
     row['score_class']=0 if row['score_class'] is None else row['score_class']
     row['score_sentiment']=0 if row['score_sentiment'] is None else row['score_sentiment']
-    print (row['score_sentiment'])
-    print (row['score_class'])
+ 
     # Calculate individual scores for each category
     if row['category']=='environmental':
         environmental_score = round((environmental_sentiment_weight * row['score_sentiment']) + (environmental_classification_weight * row['score_class']),2)
@@ -152,7 +151,6 @@ def calculate_esg_scores(row):
 def get_total_classes(label,all_data_sentiment):
     # total_label = all_data_sentiment[all_data_sentiment['category'] == label].shape[0]
     # total_label = all_data_sentiment[all_data_sentiment['category'] == label].shape[0] if label in all_data_sentiment['category'].values else 0
-    print(all_data_sentiment['category'] == label)
     total_label = len(all_data_sentiment[all_data_sentiment['category'] == label]) if label in all_data_sentiment['category'].values else 0
     return total_label
 
