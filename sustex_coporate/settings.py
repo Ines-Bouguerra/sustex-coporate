@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u3+-8octbnjgnqgve73pb2i_*d&_)5fpa=4nq4^oos1797((oe
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
-
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
  'http://*'
     
@@ -76,6 +76,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 AUTH_USER_MODEL = "usermanagement.User"
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -112,23 +113,23 @@ ASGI_APPLICATION = 'sustex_coporate.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': os.getenv('DB_NAME'),
-        'CLIENT': {
-            'host': os.getenv('DB_HOST'),
-            'username': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASSWORD'),
-        }
-    }
-}
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'djongo',
-#         'NAME': 'mydatabase', # Your MongoDB database name
+#         'NAME': os.getenv('DB_NAME'),
+#         'CLIENT': {
+#             'host': os.getenv('DB_HOST'),
+#             'username': os.getenv('DB_USER'),
+#             'password': os.getenv('DB_PASSWORD'),
+#         }
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'mydatabase', # Your MongoDB database name
+    }
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -11,12 +11,16 @@ import seaborn as sns
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
 ###
-from django.core.files.storage import FileSystemStorage
-
+from .forms import UploadFileForm
 def save_uploaded_file(uploaded_file):
-    fs = FileSystemStorage()
-    filename = fs.save(uploaded_file.name, uploaded_file)
-    return fs.path(filename)
+    form = UploadFileForm(files={'file': uploaded_file})
+    if form.is_valid():
+        # Save the uploaded file
+        saved_file = form.save()
+        return saved_file.file.url  # Return the saved file object
+    else:
+        # Handle the case where the form is invalid (e.g., validation errors)
+        return None  
 
 
 def translate_text(text,language):
