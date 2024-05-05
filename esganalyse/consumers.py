@@ -25,12 +25,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         year = text_data_json['year']
         campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
-        
-        print(os.path.exists(file_path))
-        if file_path and os.path.exists(file_path):
-            # saved_file_path = save_uploaded_file(file_path)
-            print("save uploaded file",file_path)
-            asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,file_path))
+        saved_file_path = save_uploaded_file(file_path)
+        print("save uploaded file",file_path)
+        if saved_file_path is not None:
+            asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,saved_file_path))
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
