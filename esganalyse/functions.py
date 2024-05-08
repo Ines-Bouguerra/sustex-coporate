@@ -168,14 +168,15 @@ def get_total_sent(label,label_sent,all_data_sentiment):
 
 def calculate_total_esg(all_data_sentiment):
     """calculate total esg """
-    total_e_score = all_data_sentiment['e_score'].sum()
-    total_s_score = all_data_sentiment['s_score'].sum()
-    total_g_score = all_data_sentiment['g_score'].sum()
+    total_e_score = round(all_data_sentiment['e_score'].sum(),2)
+    total_s_score = round(all_data_sentiment['s_score'].sum(),2)
+    total_g_score = round(all_data_sentiment['g_score'].sum(),2)
     ###
     environmental_weight = 0.3
     social_weight = 0.3
     governance_weight = 0.4
     esg_score=environmental_weight*total_e_score+social_weight*total_s_score+governance_weight*total_g_score
+    esg_score=round(esg_score,2)
     return esg_score,total_e_score,total_s_score,total_g_score
 
 def get_classes(all_data_sentiment):
