@@ -6,6 +6,7 @@ from rest_framework import permissions
 from esganalyse import consumers
 from django.conf import settings
 from django.conf.urls.static import static
+from chatbot import consumers_chat
 schema_view = get_schema_view(
     openapi.Info(
         title="My API",
@@ -29,4 +30,5 @@ urlpatterns = [
 websocket_urlpatterns = [
     # consumer for a particular user
       path('ws/data/', consumers.DashboardConsumer.as_asgi()),
+      path('ws/chatbot/',consumers_chat.ChatConsumer.as_asgi()), 
 ]
