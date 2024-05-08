@@ -7,7 +7,7 @@ from channels.db import database_sync_to_async
 from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
-from esganalyse.functions import extract_from_pdf,extract_text_page,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file
+from esganalyse.functions import extract_from_pdf,extract_text_page,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
 import os
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
@@ -25,8 +25,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         year = text_data_json['year']
         campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
-        saved_file_path = save_uploaded_file(file_path)
+        # saved_file_path = save_uploaded_file(file_path)
         print("save uploaded file",file_path)
+        saved_file_path=file_path
         if saved_file_path is not None:
             asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,saved_file_path))
     
@@ -69,6 +70,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         scores_sent=[]
         for page in doc:
             text=extract_text_page(page)
+            print(text)
             sentences= list_to_string(text)
             cleaned_sentence=proprocess_text_data(sentences)
             pipe_env=get_model("ESGBERT/EnvironmentalBERT-environmental" ,"text-classification")
@@ -78,14 +80,16 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","sentiment-analysis")
             for t in cleaned_sentence:
                 sentences_class.append(t)
-                label,score_class=classify_sentence_label(t,pipe_env,pipe_soc,pipe_gov)
+                t_translate=translate_text(t,"en")
+                print({"t":t,"translate":t_translate})
+                label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov)
                 labels_class.append(label)
                 scores_classes.append(score_class)
                 if label=="environmental":
-                    sentiment_env = pipe_sent([t])
+                    sentiment_env = pipe_sent([t_translate])
                     labels_sent.append(sentiment_env[0]['label'])
                 else:
-                    sentiment_env = pipe_other([t])
+                    sentiment_env = pipe_other([t_translate])
                     labels_sent.append(get_sentiment(sentiment_env[0]['score']))
                 scores_sent.append(sentiment_env[0]['score'])
             data={
