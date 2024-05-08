@@ -25,8 +25,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         year = text_data_json['year']
         campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
-        saved_file_path = save_uploaded_file(file_path)
+        # saved_file_path = save_uploaded_file(file_path)
         print("save uploaded file",file_path)
+        saved_file_path=file_path
         if saved_file_path is not None:
             asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,saved_file_path))
     
@@ -69,6 +70,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         scores_sent=[]
         for page in doc:
             text=extract_text_page(page)
+            print(text)
             sentences= list_to_string(text)
             cleaned_sentence=proprocess_text_data(sentences)
             pipe_env=get_model("ESGBERT/EnvironmentalBERT-environmental" ,"text-classification")
@@ -79,6 +81,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             for t in cleaned_sentence:
                 sentences_class.append(t)
                 t_translate=translate_text(t,"en")
+                print({"t":t,"translate":t_translate})
                 label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov)
                 labels_class.append(label)
                 scores_classes.append(score_class)

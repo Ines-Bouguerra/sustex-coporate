@@ -7,7 +7,7 @@ from googletrans import Translator
 import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
-import seaborn as sns
+from deep_translator import GoogleTranslator
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
 ###
@@ -23,12 +23,16 @@ def save_uploaded_file(uploaded_file):
         return None  
 
 
-def translate_text(text,language):
-    """function to translate text to be compatible with models"""
-    translator = Translator()
-    translated = translator.translate(text, src='auto', dest=language)
-    return translated.text
-
+# def translate_text(text,language):
+#     """function to translate text to be compatible with models"""
+#     translator = Translator()
+#     translated = translator.translate(text, src='auto', dest=language)
+#     return translated.text
+def translate_text(text, language):
+    """Function to translate text to be compatible with models"""
+    translated = GoogleTranslator(source='auto', target=language).translate(text)
+    print(translated)
+    return translated
 ##
 def extract_from_pdf(path):
     """function extract_from_pdf """
