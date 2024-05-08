@@ -100,20 +100,21 @@ def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov):
     env = pipe_env(text, padding=True, truncation=True)
     label=None
     score_class=None
-    if env[0]['label']!='none':
-        label=env[0]['label']
-        score_class=env[0]['score']
-    else:
-        social=pipe_soc(text, padding=True, truncation=True)
-        if social[0]['label']!='none':
-            label=social[0]['label']
-            score_class=social[0]['score']
-            
+    if text is not None:
+        if env[0]['label']!='none':
+            label=env[0]['label']
+            score_class=env[0]['score']
         else:
-            gov=pipe_gov(text, padding=True, truncation=True)
-            if gov[0]['label']!='none':
-                label=gov[0]['label']
-                score_class=gov[0]['score']
+            social=pipe_soc(text, padding=True, truncation=True)
+            if social[0]['label']!='none':
+                label=social[0]['label']
+                score_class=social[0]['score']
+                
+            else:
+                gov=pipe_gov(text, padding=True, truncation=True)
+                if gov[0]['label']!='none':
+                    label=gov[0]['label']
+                    score_class=gov[0]['score']
     return label,score_class
 
 def get_sentiment(score):
