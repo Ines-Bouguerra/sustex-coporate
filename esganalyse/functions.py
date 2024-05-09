@@ -99,6 +99,7 @@ def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov):
     """function to classify sentence labes as E,S,G"""
     label=None
     score_class=None
+    print({"tesxttt":text})
     if text is not None:
         env = pipe_env(text, padding=True, truncation=True)
         if env[0]['label']!='none':
