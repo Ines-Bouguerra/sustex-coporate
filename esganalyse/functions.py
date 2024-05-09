@@ -7,7 +7,7 @@ from googletrans import Translator
 import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
-import seaborn as sns
+from deep_translator import GoogleTranslator
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
 ###
@@ -23,12 +23,16 @@ def save_uploaded_file(uploaded_file):
         return None  
 
 
-def translate_text(text,language):
-    """function to translate text to be compatible with models"""
-    translator = Translator()
-    translated = translator.translate(text, src='auto', dest=language)
-    return translated.text
-
+# def translate_text(text,language):
+#     """function to translate text to be compatible with models"""
+#     translator = Translator()
+#     translated = translator.translate(text, src='auto', dest=language)
+#     return translated.text
+def translate_text(text, language):
+    """Function to translate text to be compatible with models"""
+    translated = GoogleTranslator(source='auto', target=language).translate(text)
+    print(translated)
+    return translated
 ##
 def extract_from_pdf(path):
     """function extract_from_pdf """
@@ -96,20 +100,21 @@ def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov):
     env = pipe_env(text, padding=True, truncation=True)
     label=None
     score_class=None
-    if env[0]['label']!='none':
-        label=env[0]['label']
-        score_class=env[0]['score']
-    else:
-        social=pipe_soc(text, padding=True, truncation=True)
-        if social[0]['label']!='none':
-            label=social[0]['label']
-            score_class=social[0]['score']
-            
+    if text is not None:
+        if env[0]['label']!='none':
+            label=env[0]['label']
+            score_class=env[0]['score']
         else:
-            gov=pipe_gov(text, padding=True, truncation=True)
-            if gov[0]['label']!='none':
-                label=gov[0]['label']
-                score_class=gov[0]['score']
+            social=pipe_soc(text, padding=True, truncation=True)
+            if social[0]['label']!='none':
+                label=social[0]['label']
+                score_class=social[0]['score']
+                
+            else:
+                gov=pipe_gov(text, padding=True, truncation=True)
+                if gov[0]['label']!='none':
+                    label=gov[0]['label']
+                    score_class=gov[0]['score']
     return label,score_class
 
 def get_sentiment(score):
@@ -164,14 +169,15 @@ def get_total_sent(label,label_sent,all_data_sentiment):
 
 def calculate_total_esg(all_data_sentiment):
     """calculate total esg """
-    total_e_score = all_data_sentiment['e_score'].sum()
-    total_s_score = all_data_sentiment['s_score'].sum()
-    total_g_score = all_data_sentiment['g_score'].sum()
+    total_e_score = round(all_data_sentiment['e_score'].sum(),2)
+    total_s_score = round(all_data_sentiment['s_score'].sum(),2)
+    total_g_score = round(all_data_sentiment['g_score'].sum(),2)
     ###
     environmental_weight = 0.3
     social_weight = 0.3
     governance_weight = 0.4
     esg_score=environmental_weight*total_e_score+social_weight*total_s_score+governance_weight*total_g_score
+    esg_score=round(esg_score,2)
     return esg_score,total_e_score,total_s_score,total_g_score
 
 def get_classes(all_data_sentiment):
