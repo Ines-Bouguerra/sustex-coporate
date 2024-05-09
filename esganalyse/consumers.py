@@ -21,11 +21,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         # asyncio.create_task(self.send(json.dumps({"msg":"hello from backend!"})))
         
     async def receive(self, text_data):
+        # print(self.scope['file'])
+        print(text_data)
         text_data_json = json.loads(text_data)
+        print(text_data_json)
+        text_data_json=text_data_json['data']
         year = text_data_json['year']
         campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
-        # saved_file_path = save_uploaded_file(file_path)
         print("save uploaded file",file_path)
         saved_file_path=file_path
         if saved_file_path is not None:
@@ -61,8 +64,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
        
     async def start_data_loop_global_chart(self,campany_name,year,path):
-        # path="../resources/orange_rapport-annuel-integre-2022.pdf"
+        # print("helooo",path.strip('/'))
+        path=path.strip('/')
         doc= extract_from_pdf(path)
+        # print(doc)
         sentences_class=[]
         labels_class=[]
         scores_classes=[]
@@ -70,7 +75,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         scores_sent=[]
         for page in doc:
             text=extract_text_page(page)
-            print(text)
             sentences= list_to_string(text)
             cleaned_sentence=proprocess_text_data(sentences)
             pipe_env=get_model("ESGBERT/EnvironmentalBERT-environmental" ,"text-classification")
