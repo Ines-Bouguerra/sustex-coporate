@@ -97,10 +97,10 @@ def get_campany_name(output):
 
 def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov):
     """function to classify sentence labes as E,S,G"""
-    env = pipe_env(text, padding=True, truncation=True)
     label=None
     score_class=None
     if text is not None:
+        env = pipe_env(text, padding=True, truncation=True)
         if env[0]['label']!='none':
             label=env[0]['label']
             score_class=env[0]['score']
