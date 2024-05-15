@@ -51,7 +51,7 @@ def list_to_string(title_contenu):
     sub_sentences=[]
     for x in title_contenu:
         x=x.replace('\n',' ')
-        x=re.sub(r'(\w)([.,!?])', r'\1 \2', x)
+        x=re.sub(r'(\w)([.!?])', r'\1 \2', x)
         sub_sentences.append(x+'.')
     return ' '.join(sub_sentences).strip()
 
@@ -95,27 +95,29 @@ def get_campany_name(output):
     most_common_word = max(set(org_entities), key=org_entities.count)
     return most_common_word
 
-def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov):
+def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov,pipe_esg):
     """function to classify sentence labes as E,S,G"""
     label=None
     score_class=None
     print({"tesxttt":text})
     if text is not None:
-        env = pipe_env(text, padding=True, truncation=True)
-        if env[0]['label']!='none':
-            label=env[0]['label']
-            score_class=env[0]['score']
-        else:
-            social=pipe_soc(text, padding=True, truncation=True)
-            if social[0]['label']!='none':
-                label=social[0]['label']
-                score_class=social[0]['score']
-                
+        text = pipe_esg(text, padding=True, truncation=True)[0]['label']
+        if text is not None:
+            env = pipe_env(text, padding=True, truncation=True)
+            if env[0]['label']!='none':
+                label=env[0]['label']
+                score_class=env[0]['score']
             else:
-                gov=pipe_gov(text, padding=True, truncation=True)
-                if gov[0]['label']!='none':
-                    label=gov[0]['label']
-                    score_class=gov[0]['score']
+                social=pipe_soc(text, padding=True, truncation=True)
+                if social[0]['label']!='none':
+                    label=social[0]['label']
+                    score_class=social[0]['score']
+                    
+                else:
+                    gov=pipe_gov(text, padding=True, truncation=True)
+                    if gov[0]['label']!='none':
+                        label=gov[0]['label']
+                        score_class=gov[0]['score']
     return label,score_class
 
 def get_sentiment(score):

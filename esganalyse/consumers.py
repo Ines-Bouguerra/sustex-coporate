@@ -9,6 +9,7 @@ from .models import Campany
 from django.db.models import Q
 from esganalyse.functions import extract_from_pdf,extract_text_page,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
 import os
+from transformers import pipeline
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -82,13 +83,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             pipe_gov=get_model("ESGBERT/GovernanceBERT-governance","text-classification")
             pipe_sent=get_model("climatebert/distilroberta-base-climate-sentiment","text-classification")
             pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","sentiment-analysis")
+            pipe_esg= pipeline("text-classification", model="nbroad/ESG-BERT")
             for t in cleaned_sentence:
                 t_translate=translate_text(t,"en")
                 if t_translate is not None:
                     print({"t":t,"translate":t_translate})
                     sentences_class.append(t)
                     
-                    label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov)
+                    label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)
                     labels_class.append(label)
                     scores_classes.append(score_class)
                     if label=="environmental" :
