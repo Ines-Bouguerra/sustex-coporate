@@ -12,6 +12,9 @@ from deep_translator import GoogleTranslator
 # nltk.download('punkt')
 ###
 from .forms import UploadFileForm
+import warnings
+
+warnings.filterwarnings("ignore")
 def save_uploaded_file(uploaded_file):
     form = UploadFileForm(files={'file': uploaded_file})
     if form.is_valid():
@@ -28,6 +31,37 @@ def save_uploaded_file(uploaded_file):
 #     translator = Translator()
 #     translated = translator.translate(text, src='auto', dest=language)
 #     return translated.text
+
+def get_content_first(x, y,doc):
+    """get first  pages in document"""
+    text=''
+    for i in range(x,y):
+        text+=' '.join(extract_text_page(doc[i]))
+    return text
+
+def answer_question_from_pdf(text, question):
+    """function to define question and  return answer"""
+    text_content=text.replace("\n"," ")
+    # print({"text_content":text_content})
+    pipe = pipeline("question-answering", model="deepset/roberta-base-squad2")
+    generated_text = pipe({"question": question, "context": text_content}, max_length=100)
+    return generated_text
+
+def get_campany_name(text):
+    """function to get the name of campany"""
+    question="what is the company name?"
+    answer=answer_question_from_pdf(text, question)
+    campany_name=answer['answer'] if answer is not None else None
+    return campany_name
+    
+def get_date_report(text):
+    """function to get the date of report"""
+    question="what is the year of this report?"
+    answer=answer_question_from_pdf(text, question)
+    campany_name=answer['answer'] if answer is not None else None
+    return campany_name
+
+
 def translate_text(text, language):
     """Function to translate text to be compatible with models"""
     translated = GoogleTranslator(source='auto', target=language).translate(text)
@@ -89,11 +123,11 @@ def get_word_entity(text):
     all_entities+=outputs
     return all_entities
 
-def get_campany_name(output):
-    """function to use NER algorithm to GET word entities"""
-    org_entities = [entity['word'] for entity in output if entity['entity_group'] == 'ORG']
-    most_common_word = max(set(org_entities), key=org_entities.count)
-    return most_common_word
+# def get_campany_name(output):
+#     """function to use NER algorithm to GET word entities"""
+#     org_entities = [entity['word'] for entity in output if entity['entity_group'] == 'ORG']
+#     most_common_word = max(set(org_entities), key=org_entities.count)
+#     return most_common_word
 
 def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov,pipe_esg):
     """function to classify sentence labes as E,S,G"""
