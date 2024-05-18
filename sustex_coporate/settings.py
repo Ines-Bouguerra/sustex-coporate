@@ -28,10 +28,9 @@ SECRET_KEY = 'django-insecure-u3+-8octbnjgnqgve73pb2i_*d&_)5fpa=4nq4^oos1797((oe
 DEBUG = os.getenv('DEBUG')
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
- 'http://*'
-    
+ 'http://*',
 ]
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', '.vercel.app']
 DEBUG=True
 
 # Application definition
