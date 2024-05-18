@@ -7,8 +7,9 @@ from channels.db import database_sync_to_async
 from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
-from esganalyse.functions import extract_from_pdf,extract_text_page,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
+from esganalyse.functions import extract_from_pdf,extract_text_page, get_content_first, get_date_report,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
 import os
+from transformers import pipeline
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -32,7 +33,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         print("save uploaded file",file_path)
         saved_file_path=file_path
         if saved_file_path is not None:
-            asyncio.create_task(self.start_data_loop_global_chart(campany_name,year,saved_file_path))
+            asyncio.create_task(self.start_data_loop_global_chart(saved_file_path))
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -63,7 +64,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                         sentence_serializer.save()
 
        
-    async def start_data_loop_global_chart(self,campany_name,year,path):
+    async def start_data_loop_global_chart(self,path):
         # print("helooo",path.strip('/'))
         path=path.strip('/')
         doc= extract_from_pdf(path)
@@ -73,6 +74,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         scores_classes=[]
         labels_sent=[]
         scores_sent=[]
+        text_first=get_content_first(0, 4,doc)
+        campany_name=get_campany_name(text_first)
+        year=get_date_report(text_first)
+        print({"campany_name":campany_name,"year":year})
         for page in doc:
             text=extract_text_page(page)
             sentences= list_to_string(text)
@@ -82,13 +87,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             pipe_gov=get_model("ESGBERT/GovernanceBERT-governance","text-classification")
             pipe_sent=get_model("climatebert/distilroberta-base-climate-sentiment","text-classification")
             pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","sentiment-analysis")
+            pipe_esg= pipeline("text-classification", model="nbroad/ESG-BERT")
             for t in cleaned_sentence:
                 t_translate=translate_text(t,"en")
                 if t_translate is not None:
                     print({"t":t,"translate":t_translate})
                     sentences_class.append(t)
                     
-                    label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov)
+                    label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)
                     labels_class.append(label)
                     scores_classes.append(score_class)
                     if label=="environmental" :
