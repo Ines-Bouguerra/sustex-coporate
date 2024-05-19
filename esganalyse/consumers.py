@@ -7,7 +7,7 @@ from channels.db import database_sync_to_async
 from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
-from esganalyse.functions import extract_from_pdf,extract_text_page, get_content_first, get_date_report,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
+from esganalyse.functions import extract_from_pdf,extract_text_page, generate_recommendation, get_content_first, get_date_report,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
 import os
 from transformers import pipeline
 logger = logging.getLogger(__name__) 
@@ -45,23 +45,59 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     ##function to save in database asynchrononsly
     @database_sync_to_async
     def save_system_usage(self, all_data_sentiment,document_data):
-        if not Campany.objects.filter(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year'])).exists():
-            # Create a serializer instance
-            dashboard_serializer = CampanySerializer(data=document_data)
-        else:
-            object_serializer=CampanySerializer.objects.get(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year']))
-            dashboard_serializer = CampanySerializer(object_serializer,data=document_data)
-        # Check if the data is valid
-        if dashboard_serializer.is_valid():
-            dashboard_instance = dashboard_serializer.save()
-            id_campany = dashboard_instance.id
-            if id_campany is not None:
-                for sentence in all_data_sentiment:
-                    sentence['campany']=id_campany
-                    sentence_serializer = CampanyDetailsSerializer(data=sentence)
-                    if sentence_serializer.is_valid():
-                        # Save the new data
-                        sentence_serializer.save()
+        # try:
+            company_instance = Campany.objects.filter(
+                Q(campany_name=document_data['campany_name']) & 
+                Q(year=document_data['year'])
+            ).first()
+            
+            if company_instance:
+                dashboard_serializer = CampanySerializer(company_instance, data=document_data)
+            else:
+                dashboard_serializer = CampanySerializer(data=document_data)
+            
+            if dashboard_serializer.is_valid():
+                dashboard_instance = dashboard_serializer.save()
+                id_company = dashboard_instance.id
+                print({"id_company": id_company})
+                
+                if id_company is not None:
+                    for sentence in all_data_sentiment:
+                        sentence['campany'] = id_company
+                        sentence_serializer = CampanyDetailsSerializer(data=sentence)
+                        
+                        if sentence_serializer.is_valid():
+                            sentence_serializer.save()
+                        else:
+                            print({"error in adding company details": sentence_serializer.errors})
+            else:
+                print({"error in adding company": dashboard_serializer.errors})
+        
+        # except Exception as e:
+        #     print({"error": str(e)})
+        # if not Campany.objects.filter(Q(campany_name=document_data['campany_name']) & Q (year=document_data['year'])).exists():
+        #     # Create a serializer instance
+        #     dashboard_serializer = CampanySerializer(data=document_data)
+        # else:
+        #     object_serializer=CampanySerializer.objects.get(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year']))
+        #     dashboard_serializer = CampanySerializer(object_serializer,data=document_data)
+        # # Check if the data is valid
+        # if dashboard_serializer.is_valid():
+        #     dashboard_instance = dashboard_serializer.save()
+        #     id_campany = dashboard_instance.id
+        #     print({"id_campany":id_campany})
+        #     if id_campany is not None:
+        #         for sentence in all_data_sentiment:
+        #             sentence['campany']=id_campany
+        #             sentence_serializer = CampanyDetailsSerializer(data=sentence)
+        #             if sentence_serializer.is_valid():
+        #                 # Save the new data
+        #                 sentence_serializer.save()
+        #             else:
+        #                 print({"error in adding campany details":sentence_serializer.errors})
+                        
+        # else :
+        #     print({"error in adding campany":dashboard_serializer.errors})
 
        
     async def start_data_loop_global_chart(self,path):
@@ -77,7 +113,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         text_first=get_content_first(0, 4,doc)
         campany_name=get_campany_name(text_first)
         year=get_date_report(text_first)
-        print({"campany_name":campany_name,"year":year})
+        print({"campany_name":campany_name,"year":int(year)})
         for page in doc:
             text=extract_text_page(page)
             sentences= list_to_string(text)
@@ -86,30 +122,35 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             pipe_soc=get_model("ESGBERT/SocialBERT-social" ,"text-classification")
             pipe_gov=get_model("ESGBERT/GovernanceBERT-governance","text-classification")
             pipe_sent=get_model("climatebert/distilroberta-base-climate-sentiment","text-classification")
-            pipe_other=get_model("nlptown/bert-base-multilingual-uncased-sentiment","sentiment-analysis")
+            pipe_other=get_model("distilbert-base-uncased-finetuned-sst-2-english","sentiment-analysis")
             pipe_esg= pipeline("text-classification", model="nbroad/ESG-BERT")
             for t in cleaned_sentence:
                 t_translate=translate_text(t,"en")
                 if t_translate is not None:
                     print({"t":t,"translate":t_translate})
                     sentences_class.append(t)
-                    
                     label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)
                     labels_class.append(label)
                     scores_classes.append(score_class)
                     if label=="environmental" :
                         sentiment_env = pipe_sent([t_translate])
-                        labels_sent.append(sentiment_env[0]['label'])
+                        sentiment_res=sentiment_env[0]['label']
+                        labels_sent.append(sentiment_res)
                     else:
                         sentiment_env = pipe_other([t_translate])
-                        labels_sent.append(get_sentiment(sentiment_env[0]['score']))
+                        sentiment_res=get_sentiment(sentiment_env[0]['label'])
+                        labels_sent.append(sentiment_res)
                     scores_sent.append(sentiment_env[0]['score'])
+                    recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" else None
+                if recommandation is not None :
+                    print({"recommandation":recommandation})
                 data={
                     "factors":sentences_class,
                     "category":labels_class,
                     "score_class":scores_classes,
                     "sentiment":labels_sent,
                     "score_sentiment":scores_sent,
+                    "recommandation":recommandation
                 }
                 all_data_sentiment = pd.DataFrame(data)
                 # all_data_sentiment = all_data_sentiment.dropna()
@@ -153,7 +194,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 
                 # print("hello2==>",all_data)
                 await self.send(json.dumps(all_data))
-            # await self.save_system_usage(all_data_sentiment,document_data)
+                await self.save_system_usage(all_data_sentiment,document_data)
             
             # Sleep for a while before sending the next data (adjust the interval as needed)
             await asyncio.sleep(60)

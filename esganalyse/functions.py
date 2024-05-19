@@ -154,14 +154,27 @@ def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov,pipe_esg):
                         score_class=gov[0]['score']
     return label,score_class
 
-def get_sentiment(score):
-    if score >= 0.6:
-        return 'opportunity'
-    elif score <= 0.4:
+def get_sentiment(label):
+    if label == 'NEGATIVE':
         return 'risk'
+    elif label == 'POSITIVE':
+        return 'opportunity'
     else:
         return 'neutral'
 
+def generate_recommendation(text_input):
+    """function to generate recommendations based on risk detected"""
+    pipe = pipeline("text-generation", model="gpt2")
+    input_prompt = f"The detected risk is {text_input}. It is recommended to:"
+    generated_text = pipe(input_prompt, 
+        max_length=150,             
+        num_return_sequences=3,     
+        temperature=0.7,           
+        top_p=0.9,                  
+        repetition_penalty=1.2 )[0]['generated_text']
+    generated_text = sent_tokenize(generated_text)
+    result = "\n".join(generated_text)
+    return result
 # Define the calculate_esg_scores function
 def calculate_esg_scores(row):
     """
