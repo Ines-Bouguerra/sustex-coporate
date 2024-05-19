@@ -6,6 +6,10 @@ import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import torch
+from django.db.models import Q
+from django.core import serializers
+from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data
+from esganalyse.models import Campany
 logger = logging.getLogger(__name__) 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -19,10 +23,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
+        campany_name = text_data_json['campany_name']
         msg = text_data_json['msg']
-    
+        year = text_data_json['year']
+        campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
+        campany_dict = serializers.serialize("json", [campany])  # Serializing single object
+        res = json.loads(campany_dict)
+        campany_json = res[0]['fields']
+        campany_json['id'] = res[0]['pk']
         if msg is not None:
-            asyncio.create_task(self.response_msg(msg))
+            asyncio.create_task(self.response_msg(msg,campany_json))
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -34,17 +44,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
    
 
        
-    async def response_msg(self,msg):
-        # Load pre-trained GPT-2 model and tokenizer
-        model_name = "gpt2"
-        tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-        model = GPT2LMHeadModel.from_pretrained(model_name)
-        # Tokenize input
-        input_ids = tokenizer.encode(msg, return_tensors="pt")
-        # Generate response based on the input
-        with torch.no_grad():
-            output = model.generate(input_ids, max_length=100, pad_token_id=tokenizer.eos_token_id)
-
-        # Decode and return response
-        response = tokenizer.decode(output[0], skip_special_tokens=True)
+    async def response_msg(self,msg,data):
+        file_path="data.json"
+        model_fine_tune="fine-tuned-gpt2"
+        list_question=define_question(data)
+        save_file_json(file_path,list_question) 
+        train_dataset,eval_dataset=split_data(file_path)
+        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+        response=get_response(model_fine_tune,msg)
         await self.send(json.dumps(response))
