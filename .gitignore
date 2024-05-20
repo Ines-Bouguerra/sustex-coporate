@@ -12,7 +12,8 @@ esganalyse/migrations/__pycache__/
 chatbot/__pycache__/
 chatbot/migrations/__pycache__/
 
-
+/fine-tuned-gpt2/*
+/results/*
 /media/
 # ignore all files in the venv directory
 venv/*
@@ -29,3 +30,4 @@ __pycache__/*
 
 # ignore all .env files
 *.env
+/mlruns/*

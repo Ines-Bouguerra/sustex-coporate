@@ -3,8 +3,13 @@ from datasets import load_dataset
 from datasets import load_dataset, Features, Value
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from transformers import pipeline
-# Load tokenizer and model
+from deep_translator import GoogleTranslator
 
+# Load tokenizer and model
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+model = GPT2LMHeadModel.from_pretrained('gpt2')
+# Set padding token to the EOS token
+tokenizer.pad_token = tokenizer.eos_token
 
 def define_question(data):
     """function to define question to fine tune model on this data"""
@@ -108,11 +113,7 @@ def tokenize_function(examples):
 
 def fine_tune_model(train_dataset,eval_dataset,model_fine_tune):
     """function modeling to fine tune models with the training  and evaluation  data"""
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    model = GPT2LMHeadModel.from_pretrained('gpt2')
-
-    # Set padding token to the EOS token
-    tokenizer.pad_token = tokenizer.eos_token
+ 
     tokenized_train_dataset = train_dataset.map(tokenize_function, batched=True, remove_columns=["question", "answer"])
     tokenized_eval_dataset = eval_dataset.map(tokenize_function, batched=True, remove_columns=["question", "answer"])
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -137,7 +138,11 @@ def fine_tune_model(train_dataset,eval_dataset,model_fine_tune):
     tokenizer.save_pretrained(model_fine_tune)
     
    
-    
+def translate_text(text, language):
+    """Function to translate text to be compatible with models"""
+    translated = GoogleTranslator(source='auto', target=language).translate(text)
+    print(translated)
+    return translated   
     
     
 def get_response(model_fine_tune,question) :
@@ -170,6 +175,14 @@ data = {
     "total_g_score": 0,
     "total_esg_score": 24.62
 }   
-list_question=define_question(data)
-print(list_question)
-save_file_json("data.json",list_question)        
+# list_question=define_question(data)
+# print(list_question)
+# save_file_json("data.json",list_question)        
+# train_dataset,eval_dataset=split_data("data.json")
+# model_fine_tune="fine-tuned-gpt2"
+# fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+# msg="Quel est ESG score pour  orange en 2022?"
+# msg=translate_text(msg,"en")
+
+# response=get_response(model_fine_tune,msg)
+# print({"response":response})
