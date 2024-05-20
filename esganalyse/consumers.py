@@ -4,12 +4,15 @@ import json
 import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+
+from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data
 from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
 from esganalyse.functions import extract_from_pdf,extract_text_page, generate_recommendation, get_content_first, get_date_report,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
-import os
 from transformers import pipeline
+from django.core import serializers
+
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -27,13 +30,26 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         print(text_data_json)
         text_data_json=text_data_json['data']
-        year = text_data_json['year']
-        campany_name=text_data_json['campany_name']
         file_path = text_data_json.get('file_path')
+       
+        
         print("save uploaded file",file_path)
         saved_file_path=file_path
         if saved_file_path is not None:
             asyncio.create_task(self.start_data_loop_global_chart(saved_file_path))
+            msg = text_data_json.get('msg',None)
+            year = text_data_json.get('year',None)
+            campany_name = text_data_json.get('campany_name',None)
+            if msg is not None and year is not None and campany_name is not None :
+                campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
+                campany_dict = serializers.serialize("json", [campany])  # Serializing single object
+                res = json.loads(campany_dict)
+                campany_json = res[0]['fields']
+                campany_json['id'] = res[0]['pk']
+                asyncio.create_task(self.response_msg(msg,campany_json))
+    
+            
+    
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -73,32 +89,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             else:
                 print({"error in adding company": dashboard_serializer.errors})
         
-        # except Exception as e:
-        #     print({"error": str(e)})
-        # if not Campany.objects.filter(Q(campany_name=document_data['campany_name']) & Q (year=document_data['year'])).exists():
-        #     # Create a serializer instance
-        #     dashboard_serializer = CampanySerializer(data=document_data)
-        # else:
-        #     object_serializer=CampanySerializer.objects.get(Q(campany_name=document_data['campany_name'])& Q (year=document_data['year']))
-        #     dashboard_serializer = CampanySerializer(object_serializer,data=document_data)
-        # # Check if the data is valid
-        # if dashboard_serializer.is_valid():
-        #     dashboard_instance = dashboard_serializer.save()
-        #     id_campany = dashboard_instance.id
-        #     print({"id_campany":id_campany})
-        #     if id_campany is not None:
-        #         for sentence in all_data_sentiment:
-        #             sentence['campany']=id_campany
-        #             sentence_serializer = CampanyDetailsSerializer(data=sentence)
-        #             if sentence_serializer.is_valid():
-        #                 # Save the new data
-        #                 sentence_serializer.save()
-        #             else:
-        #                 print({"error in adding campany details":sentence_serializer.errors})
-                        
-        # else :
-        #     print({"error in adding campany":dashboard_serializer.errors})
-
+       
        
     async def start_data_loop_global_chart(self,path):
         # print("helooo",path.strip('/'))
@@ -141,7 +132,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                         sentiment_res=get_sentiment(sentiment_env[0]['label'])
                         labels_sent.append(sentiment_res)
                     scores_sent.append(sentiment_env[0]['score'])
-                    recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" else None
+                    recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" and sentiment_env[0]['score']>=0.9  else None
                 if recommandation is not None :
                     print({"recommandation":recommandation})
                 data={
@@ -198,3 +189,15 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             
             # Sleep for a while before sending the next data (adjust the interval as needed)
             await asyncio.sleep(60)
+            
+            
+    async def response_msg(self,msg,data):
+        file_path="data.json"
+        model_fine_tune="fine-tuned-gpt2"
+        list_question=define_question(data)
+        save_file_json(file_path,list_question) 
+        train_dataset,eval_dataset=split_data(file_path)
+        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+        msg=translate_text(msg,"en")
+        response=get_response(model_fine_tune,msg)
+        await self.send(json.dumps(response))

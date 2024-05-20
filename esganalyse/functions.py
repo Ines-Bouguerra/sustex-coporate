@@ -165,7 +165,9 @@ def get_sentiment(label):
 def generate_recommendation(text_input):
     """function to generate recommendations based on risk detected"""
     pipe = pipeline("text-generation", model="gpt2")
-    input_prompt = f"The detected risk is {text_input}. It is recommended to:"
+    # text=f"what is the recommandation or solution for this risk : {text_input}?"
+    # input_prompt = "Question: " + text + "\nAnswer:"
+    input_prompt = f"To address the risk of {text_input}, the following recommendations are suggested:\n\n "
     generated_text = pipe(input_prompt, 
         max_length=150,             
         num_return_sequences=3,     
