@@ -90,7 +90,15 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 print({"error in adding company": dashboard_serializer.errors})
         
        
-       
+             
+    async def fine_tune_model_task(self,data):
+        file_path="data.json"
+        model_fine_tune="fine-tuned-gpt2"
+        list_question=define_question(data)
+        save_file_json(file_path,list_question) 
+        train_dataset,eval_dataset=split_data(file_path)
+        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
+          
     async def start_data_loop_global_chart(self,path):
         # print("helooo",path.strip('/'))
         path=path.strip('/')
@@ -186,18 +194,12 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 # print("hello2==>",all_data)
                 await self.send(json.dumps(all_data))
                 await self.save_system_usage(all_data_sentiment,document_data)
-            
-            # Sleep for a while before sending the next data (adjust the interval as needed)
-            await asyncio.sleep(60)
-            
-            
-    async def response_msg(self,msg,data):
-        file_path="data.json"
-        model_fine_tune="fine-tuned-gpt2"
-        list_question=define_question(data)
-        save_file_json(file_path,list_question) 
-        train_dataset,eval_dataset=split_data(file_path)
-        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+                await asyncio.sleep(1)
+        await asyncio.create_task(self.fine_tune_model_task(document_data))
+                
+   
+             
+    async def response_msg(self,msg,model_fine_tune):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
         await self.send(json.dumps(response))
