@@ -8,6 +8,9 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
+from transformers import logging
+
+logging.set_verbosity_error()
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
 ###
@@ -62,11 +65,21 @@ def get_date_report(text):
     return campany_name
 
 
+# def translate_text(text, language):
+#     """Function to translate text to be compatible with models"""
+#     translated = GoogleTranslator(source='auto', target=language).translate(text)
+#     print(translated)
+#     return translated
 def translate_text(text, language):
     """Function to translate text to be compatible with models"""
-    translated = GoogleTranslator(source='auto', target=language).translate(text)
-    print(translated)
-    return translated
+    try:
+        translator = Translator()
+        translated = translator.translate(text, dest=language).text
+        print(translated)
+        return translated
+    except Exception as e:
+        print(f"An error occurred during translation: {e}")
+        return None
 ##
 def extract_from_pdf(path):
     """function extract_from_pdf """
@@ -89,15 +102,24 @@ def list_to_string(title_contenu):
         sub_sentences.append(x+'.')
     return ' '.join(sub_sentences).strip()
 
-def get_model(name,task):
-    """function to declare a model class"""
-    # In simple words, the tokenizer prepares the text for the model and the model classifies the text-
-    tokenizer = AutoTokenizer.from_pretrained(name)
-    model = AutoModelForSequenceClassification.from_pretrained(name)
-    # The pipeline combines tokenizer and model to one process.
-    pipe= pipeline(task, model=model, tokenizer=tokenizer)
-    return pipe
-
+# def get_model(name,task):
+#     """function to declare a model class"""
+#     # In simple words, the tokenizer prepares the text for the model and the model classifies the text-
+#     tokenizer = AutoTokenizer.from_pretrained(name)
+#     model = AutoModelForSequenceClassification.from_pretrained(name)
+#     # The pipeline combines tokenizer and model to one process.
+#     pipe= pipeline(task, model=model, tokenizer=tokenizer)
+#     return pipe
+def get_model(name, task):
+    """Function to declare a model class"""
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(name)
+        model = AutoModelForSequenceClassification.from_pretrained(name)
+        pipe = pipeline(task, model=model, tokenizer=tokenizer)
+        return pipe
+    except Exception as e:
+        print(f"An error occurred while loading the model or tokenizer: {e}")
+        return None
 def proprocess_text_data(multi_lang_text):
     """function to preprocess data from pdf"""
     sentences = nltk.tokenize.sent_tokenize(multi_lang_text)
@@ -134,7 +156,7 @@ def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov,pipe_esg):
     label=None
     score_class=None
     print({"tesxttt":text})
-    if text is not None:
+    if text is not None and pipe_env is not None and pipe_soc is not None and pipe_gov is not None and pipe_esg is not None:
         text = pipe_esg(text, padding=True, truncation=True)[0]['label']
         if text is not None:
             env = pipe_env(text, padding=True, truncation=True)
