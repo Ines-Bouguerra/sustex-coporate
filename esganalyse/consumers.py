@@ -132,14 +132,18 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                     labels_class.append(label)
                     scores_classes.append(score_class)
                     if label=="environmental" :
-                        sentiment_env = pipe_sent([t_translate])
-                        sentiment_res=sentiment_env[0]['label']
-                        labels_sent.append(sentiment_res)
+                        if pipe_sent is not None:
+                            sentiment_env = pipe_sent([t_translate])
+                            sentiment_res=sentiment_env[0]['label']
+                            labels_sent.append(sentiment_res)
+                            scores_sent.append(sentiment_env[0]['score'])
+                            
                     else:
-                        sentiment_env = pipe_other([t_translate])
-                        sentiment_res=get_sentiment(sentiment_env[0]['label'])
-                        labels_sent.append(sentiment_res)
-                    scores_sent.append(sentiment_env[0]['score'])
+                        if pipe_other is not None:
+                            sentiment_env = pipe_other([t_translate])
+                            sentiment_res=get_sentiment(sentiment_env[0]['label'])
+                            labels_sent.append(sentiment_res)
+                            scores_sent.append(sentiment_env[0]['score'])
                     recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" and sentiment_env[0]['score']>=0.9  else None
                 if recommandation is not None :
                     print({"recommandation":recommandation})
@@ -156,8 +160,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 # print(all_data_sentiment)
                 all_data_sentiment[['e_score', 's_score', 'g_score']] = all_data_sentiment.apply(calculate_esg_scores, axis=1, result_type='expand')
                 #####
-                # entity=get_word_entity(cleaned_sentence)
-                # campany_name=get_campany_name(entity)
                 total_environmental_label, total_social_label,total_governance_label= get_classes(all_data_sentiment)
                 total_environmental_neutral,total_environmental_risk,total_environmental_opportunity=get_sent_env(all_data_sentiment)
                 total_social_neutral,total_social_risk,total_social_opportunity=get_sent_soc(all_data_sentiment)
