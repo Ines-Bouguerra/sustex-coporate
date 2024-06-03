@@ -113,23 +113,23 @@ ASGI_APPLICATION = 'sustex_coporate.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'djongo',
-#         'NAME': os.getenv('DB_NAME'),
-#         'CLIENT': {
-#             'host': os.getenv('DB_HOST'),
-#             'username': os.getenv('DB_USER'),
-#             'password': os.getenv('DB_PASSWORD'),
-#         }
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'mydatabase', # Your MongoDB database name
+        'NAME': os.getenv('DB_NAME'),
+        'CLIENT': {
+            'host': os.getenv('DB_HOST'),
+            'username': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD'),
+        }
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'mydatabase', # Your MongoDB database name
+#     }
+# }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
