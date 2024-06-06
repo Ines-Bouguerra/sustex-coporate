@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import time
 import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -191,7 +192,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 # print("hello1==>",all_data_sentiment)
                 all_data_sentiment = all_data_sentiment.to_dict(orient='records')
                 all_data_sentiment = [{k: v if not pd.isna(v) else None for k, v in d.items()} for d in all_data_sentiment]
-                all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data}
+                current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+                unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
+                all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data,"timestamp":unix_timestamp}
                 
                 # print("hello2==>",all_data)
                 await self.send(json.dumps(all_data))
