@@ -24,7 +24,8 @@ urlpatterns = [
     path('',include('sustexcoporateapp.urls')),
     path('admin/', admin.site.urls),
     path('user/',include('usermanagement.urls')),
-    path('esg/',include('esganalyse.urls'))
+    path('esg/',include('esganalyse.urls')),
+    path('benchmarking/',include('benchmarking.urls'))
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # ws/wss url patterns
 websocket_urlpatterns = [

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import time
 import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -90,7 +91,15 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 print({"error in adding company": dashboard_serializer.errors})
         
        
-       
+             
+    async def fine_tune_model_task(self,data):
+        file_path="data.json"
+        model_fine_tune="fine-tuned-gpt2"
+        list_question=define_question(data)
+        save_file_json(file_path,list_question) 
+        train_dataset,eval_dataset=split_data(file_path)
+        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
+          
     async def start_data_loop_global_chart(self,path):
         # print("helooo",path.strip('/'))
         path=path.strip('/')
@@ -124,14 +133,18 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                     labels_class.append(label)
                     scores_classes.append(score_class)
                     if label=="environmental" :
-                        sentiment_env = pipe_sent([t_translate])
-                        sentiment_res=sentiment_env[0]['label']
-                        labels_sent.append(sentiment_res)
+                        if pipe_sent is not None:
+                            sentiment_env = pipe_sent([t_translate])
+                            sentiment_res=sentiment_env[0]['label']
+                            labels_sent.append(sentiment_res)
+                            scores_sent.append(sentiment_env[0]['score'])
+                            
                     else:
-                        sentiment_env = pipe_other([t_translate])
-                        sentiment_res=get_sentiment(sentiment_env[0]['label'])
-                        labels_sent.append(sentiment_res)
-                    scores_sent.append(sentiment_env[0]['score'])
+                        if pipe_other is not None:
+                            sentiment_env = pipe_other([t_translate])
+                            sentiment_res=get_sentiment(sentiment_env[0]['label'])
+                            labels_sent.append(sentiment_res)
+                            scores_sent.append(sentiment_env[0]['score'])
                     recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" and sentiment_env[0]['score']>=0.9  else None
                 if recommandation is not None :
                     print({"recommandation":recommandation})
@@ -148,8 +161,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 # print(all_data_sentiment)
                 all_data_sentiment[['e_score', 's_score', 'g_score']] = all_data_sentiment.apply(calculate_esg_scores, axis=1, result_type='expand')
                 #####
-                # entity=get_word_entity(cleaned_sentence)
-                # campany_name=get_campany_name(entity)
                 total_environmental_label, total_social_label,total_governance_label= get_classes(all_data_sentiment)
                 total_environmental_neutral,total_environmental_risk,total_environmental_opportunity=get_sent_env(all_data_sentiment)
                 total_social_neutral,total_social_risk,total_social_opportunity=get_sent_soc(all_data_sentiment)
@@ -181,23 +192,19 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 # print("hello1==>",all_data_sentiment)
                 all_data_sentiment = all_data_sentiment.to_dict(orient='records')
                 all_data_sentiment = [{k: v if not pd.isna(v) else None for k, v in d.items()} for d in all_data_sentiment]
-                all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data}
+                current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+                unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
+                all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data,"timestamp":unix_timestamp}
                 
                 # print("hello2==>",all_data)
                 await self.send(json.dumps(all_data))
                 await self.save_system_usage(all_data_sentiment,document_data)
-            
-            # Sleep for a while before sending the next data (adjust the interval as needed)
-            await asyncio.sleep(60)
-            
-            
-    async def response_msg(self,msg,data):
-        file_path="data.json"
-        model_fine_tune="fine-tuned-gpt2"
-        list_question=define_question(data)
-        save_file_json(file_path,list_question) 
-        train_dataset,eval_dataset=split_data(file_path)
-        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+                await asyncio.sleep(1)
+        await asyncio.create_task(self.fine_tune_model_task(document_data))
+                
+   
+             
+    async def response_msg(self,msg,model_fine_tune):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
         await self.send(json.dumps(response))

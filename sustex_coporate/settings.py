@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'usermanagement',
     'esganalyse',
     'chatbot',
+    'benchmarking',
   
   
     
