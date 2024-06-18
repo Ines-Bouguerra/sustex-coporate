@@ -78,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware"
 ]
 AUTH_USER_MODEL = "usermanagement.User"
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -107,7 +108,8 @@ TEMPLATES = [
         },
     },
 ]
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 ASGI_APPLICATION = 'sustex_coporate.asgi.application'
 
 

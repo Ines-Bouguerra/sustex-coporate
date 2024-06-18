@@ -1,0 +1,87 @@
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError('HTTPSConnectionPool(host=\'scholar.google.com\', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001D739CCFBE0>: Failed to resolve \'scholar.google.com\' ([Errno 11001] getaddrinfo failed)"))'),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError('HTTPSConnectionPool(host=\'scholar.google.com\', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001D739CCFA90>: Failed to resolve \'scholar.google.com\' ([Errno 11001] getaddrinfo failed)"))'),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError('HTTPSConnectionPool(host=\'scholar.google.com\', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001D739D385E0>: Failed to resolve \'scholar.google.com\' ([Errno 11001] getaddrinfo failed)"))'),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError('HTTPSConnectionPool(host=\'scholar.google.com\', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001D739D38EB0>: Failed to resolve \'scholar.google.com\' ([Errno 11001] getaddrinfo failed)"))'),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError('HTTPSConnectionPool(host=\'scholar.google.com\', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001D739D39780>: Failed to resolve \'scholar.google.com\' ([Errno 11001] getaddrinfo failed)"))'),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Timeout Exception ReadTimeout while fetching page: (ReadTimeoutError("HTTPSConnectionPool(host='scholar.google.com', port=443): Read timed out. (read timeout=5)"),)
+INFO:scholarly:Increasing timeout and retrying within same session.
+INFO:scholarly:Timeout Exception ReadTimeout while fetching page: (ReadTimeoutError("HTTPSConnectionPool(host='scholar.google.com', port=443): Read timed out. (read timeout=10)"),)
+INFO:scholarly:Increasing timeout and retrying within same session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001D9EB3B2920>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001D9EB3B28F0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001D9EB3B29B0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001D9EB3B20E0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001D9EB3B2A70>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000002326C1D2950>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000002326C1D2920>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000002326C1D29E0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000002326C1D2110>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception ConnectionError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000002326C1D2AA0>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Getting https://scholar.google.com/scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33
+INFO:scholarly:Timeout Exception ReadTimeout while fetching page: (ReadTimeoutError("HTTPSConnectionPool(host='scholar.google.com', port=443): Read timed out. (read timeout=5)"),)
+INFO:scholarly:Increasing timeout and retrying within same session.
+INFO:scholarly:Timeout Exception ReadTimeout while fetching page: (ReadTimeoutError("HTTPSConnectionPool(host='scholar.google.com', port=443): Read timed out. (read timeout=10)"),)
+INFO:scholarly:Increasing timeout and retrying within same session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.
+INFO:scholarly:Exception SSLError while fetching page: (MaxRetryError("HTTPSConnectionPool(host='scholar.google.com', port=443): Max retries exceeded with url: /scholar?hl=en&q=sustainability%20and%20ESG&as_vis=0&as_sdt=0,33 (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:997)')))"),)
+INFO:scholarly:Retrying with a new session.

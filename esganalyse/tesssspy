@@ -1,0 +1,59 @@
+
+# from transformers import pipeline
+
+# pipe = pipeline("text-classification", model="nbroad/ESG-BERT")
+# res=pipe("reduction emission co2")
+# print(res)
+##
+from transformers import pipeline
+import fitz
+path=r"D:\IA\sustex-coporate\media\uploads\orange_rapport-annuel-integre-2022_7mgPTTo.pdf"
+doc = fitz.open(path)
+text=''
+for i  in range(0,3) :
+    text += '  '+doc[i].get_text("text")
+print(text)
+text=text.replace("\n"," ")  
+question="what is the campany name ?"
+text_content=text
+pipe = pipeline("question-answering", model="anas-awadalla/gpt2-large-span-head-finetuned-squad")
+generated_text=pipe ({"question": question, "context": text_content},max_length=100)
+print(generated_text)
+# from transformers import pipeline
+# import fitz
+# from transformers import pipeline
+# import warnings
+
+# warnings.filterwarnings("ignore")
+
+# def extract_text_from_pdf(pdf_path):
+#     doc = fitz.open(pdf_path)
+#     text = ''
+#     for i in range(0,4):
+#         text += ' ' + doc[i].get_text("text")
+#     return text
+
+# def extractive_summarize_with_pipeline(text,  model_name="facebook/bart-large-xsum"):
+#     summarization_pipeline = pipeline("summarization", model=model_name)
+#     summary = summarization_pipeline(text, max_length=150, min_length=40, do_sample=False)[0]['summary_text']
+#     return summary
+
+
+# def answer_question_from_pdf(pdf_path, question, page_range=(0, 5)):
+#     text_content = extract_text_from_pdf(pdf_path)
+#     text_content=text_content.replace("\n"," ")
+#     summary = extractive_summarize_with_pipeline(text_content)
+#     print({"summary": summary})
+#     print({"text_content":text_content})
+#     pipe = pipeline("question-answering", model="deepset/roberta-base-squad2")
+#     generated_text = pipe({"question": question, "context": text_content}, max_length=100)
+#     return generated_text
+
+# path = r"D:\IA\sustex-coporate\media\uploads\orange_rapport-annuel-integre-2022_7mgPTTo.pdf"
+# question = "what is the year of this report?"
+# # question = "what is the company name?"
+# # Adjust page_range as needed
+# answer = answer_question_from_pdf(path, question, page_range=(0, 2))
+# # print(answer['answer'].split('\n')[0])
+# print(answer)
+
