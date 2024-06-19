@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline 
@@ -16,8 +17,9 @@ logging.set_verbosity_error()
 ###
 from .forms import UploadFileForm
 import warnings
-
 warnings.filterwarnings("ignore")
+
+
 def save_uploaded_file(uploaded_file):
     form = UploadFileForm(files={'file': uploaded_file})
     if form.is_valid():
@@ -28,12 +30,10 @@ def save_uploaded_file(uploaded_file):
         # Handle the case where the form is invalid (e.g., validation errors)
         return None  
 
+def get_file_extension(file_path):
+    _, file_extension = os.path.splitext(file_path)
+    return file_extension
 
-# def translate_text(text,language):
-#     """function to translate text to be compatible with models"""
-#     translator = Translator()
-#     translated = translator.translate(text, src='auto', dest=language)
-#     return translated.text
 
 def get_content_first(x, y,doc):
     """get first  pages in document"""
@@ -102,14 +102,7 @@ def list_to_string(title_contenu):
         sub_sentences.append(x+'.')
     return ' '.join(sub_sentences).strip()
 
-# def get_model(name,task):
-#     """function to declare a model class"""
-#     # In simple words, the tokenizer prepares the text for the model and the model classifies the text-
-#     tokenizer = AutoTokenizer.from_pretrained(name)
-#     model = AutoModelForSequenceClassification.from_pretrained(name)
-#     # The pipeline combines tokenizer and model to one process.
-#     pipe= pipeline(task, model=model, tokenizer=tokenizer)
-#     return pipe
+
 def get_model(name, task):
     """Function to declare a model class"""
     try:
@@ -120,6 +113,16 @@ def get_model(name, task):
     except Exception as e:
         print(f"An error occurred while loading the model or tokenizer: {e}")
         return None
+def init_models():
+        """function to initialize all models to use  it """
+        pipe_env=get_model("ESGBERT/EnvironmentalBERT-environmental" ,"text-classification")
+        pipe_soc=get_model("ESGBERT/SocialBERT-social" ,"text-classification")
+        pipe_gov=get_model("ESGBERT/GovernanceBERT-governance","text-classification")
+        pipe_sent=get_model("climatebert/distilroberta-base-climate-sentiment","text-classification")
+        pipe_other=get_model("distilbert-base-uncased-finetuned-sst-2-english","sentiment-analysis")
+        pipe_esg= pipeline("text-classification", model="nbroad/ESG-BERT")
+        return pipe_env,pipe_soc,pipe_gov,pipe_sent,pipe_other,pipe_esg
+    
 def proprocess_text_data(multi_lang_text):
     """function to preprocess data from pdf"""
     sentences = nltk.tokenize.sent_tokenize(multi_lang_text)
@@ -229,11 +232,14 @@ def calculate_esg_scores(row):
         social_score = round((social_sentiment_weight * row['score_sentiment']) + (social_classification_weight * row['score_class']),2)
     else:
         governance_score = round((governance_sentiment_weight * row['score_sentiment']) + (governance_classification_weight * row['score_class']),2)
-    return environmental_score, social_score, governance_score
+    
+    environmental_weight = 0.3
+    social_weight = 0.3
+    governance_weight = 0.4
+    esg_score=environmental_weight*environmental_score+social_weight*social_score+governance_weight*governance_score
+    return environmental_score, social_score, governance_score,esg_score
 
 def get_total_classes(label,all_data_sentiment):
-    # total_label = all_data_sentiment[all_data_sentiment['category'] == label].shape[0]
-    # total_label = all_data_sentiment[all_data_sentiment['category'] == label].shape[0] if label in all_data_sentiment['category'].values else 0
     total_label = len(all_data_sentiment[all_data_sentiment['category'] == label]) if label in all_data_sentiment['category'].values else 0
     return total_label
 
@@ -279,3 +285,41 @@ def get_sent_gov(all_data_sentiment):
     total_governance_opportunity = get_total_sent('governance',"opportunity",all_data_sentiment)
     return total_governance_neutral,total_governance_risk,total_governance_opportunity   
     
+def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other):
+    """function to analyse sentences and get information about each factor in the sentence"""
+    sentences_class=[]
+    labels_class=[]
+    scores_classes=[]
+    labels_sent=[]
+    scores_sent=[]
+    t_translate=translate_text(t,"en")
+    if t_translate is not None:
+        print({"t":t,"translate":t_translate})
+        sentences_class.append(t)
+        label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)
+        labels_class.append(label)
+        scores_classes.append(score_class)
+        if label=="environmental" :
+            if pipe_sent is not None:
+                sentiment_env = pipe_sent([t_translate])
+                sentiment_res=sentiment_env[0]['label']
+                labels_sent.append(sentiment_res)
+                scores_sent.append(sentiment_env[0]['score'])       
+        else:
+            if pipe_other is not None:
+                sentiment_env = pipe_other([t_translate])
+                sentiment_res=get_sentiment(sentiment_env[0]['label'])
+                labels_sent.append(sentiment_res)
+                scores_sent.append(sentiment_env[0]['score'])
+        recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" and sentiment_env[0]['score']>=0.9  else None
+    if recommandation is not None :
+        print({"recommandation":recommandation})
+    data={
+        "factors":sentences_class,
+        "category":labels_class,
+        "score_class":scores_classes,
+        "sentiment":labels_sent,
+        "score_sentiment":scores_sent,
+        "recommandation":recommandation, 
+    }
+    return data
