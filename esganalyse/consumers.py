@@ -107,6 +107,11 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
           
     async def get_info_pdf(self,path):
+        sentences_class=[]
+        labels_class=[]
+        scores_classes=[]
+        labels_sent=[]
+        scores_sent=[]
         doc= extract_from_pdf(path)
         text_first=get_content_first(0, 4,doc)
         campany_name=get_campany_name(text_first)
@@ -118,7 +123,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             cleaned_sentence=proprocess_text_data(sentences)
             pipe_env,pipe_soc,pipe_gov,pipe_sent,pipe_other,pipe_esg=init_models()
             for t in cleaned_sentence:
-                data=analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other)
+                data=analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other,sentences_class,labels_class,scores_classes,labels_sent,scores_sent)
                 all_data_sentiment = pd.DataFrame(data)
                 all_data_sentiment[['e_score', 's_score', 'g_score','esg_score']] = all_data_sentiment.apply(calculate_esg_scores, axis=1, result_type='expand')
                 #####

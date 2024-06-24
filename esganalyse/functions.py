@@ -283,13 +283,8 @@ def get_sent_gov(all_data_sentiment):
     total_governance_opportunity = get_total_sent('governance',"opportunity",all_data_sentiment)
     return total_governance_neutral,total_governance_risk,total_governance_opportunity   
     
-def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other):
+def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other,sentences_class,labels_class,scores_classes,labels_sent,scores_sent):
     """function to analyse sentences and get information about each factor in the sentence"""
-    sentences_class=[]
-    labels_class=[]
-    scores_classes=[]
-    labels_sent=[]
-    scores_sent=[]
     t_translate=translate_text(t,"en")
     recommandation=None
     if t_translate is not None:
