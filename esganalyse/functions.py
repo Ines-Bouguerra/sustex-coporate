@@ -190,8 +190,6 @@ def get_sentiment(label):
 def generate_recommendation(text_input):
     """function to generate recommendations based on risk detected"""
     pipe = pipeline("text-generation", model="gpt2")
-    # text=f"what is the recommandation or solution for this risk : {text_input}?"
-    # input_prompt = "Question: " + text + "\nAnswer:"
     input_prompt = f"To address the risk of {text_input}, the following recommendations are suggested:\n\n "
     generated_text = pipe(input_prompt, 
         max_length=150,             
@@ -293,6 +291,7 @@ def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other)
     labels_sent=[]
     scores_sent=[]
     t_translate=translate_text(t,"en")
+    recommandation=None
     if t_translate is not None:
         print({"t":t,"translate":t_translate})
         sentences_class.append(t)
@@ -312,8 +311,8 @@ def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other)
                 labels_sent.append(sentiment_res)
                 scores_sent.append(sentiment_env[0]['score'])
         recommandation=generate_recommendation(t_translate) if label is not None and sentiment_res =="risk" and sentiment_env[0]['score']>=0.9  else None
-    if recommandation is not None :
-        print({"recommandation":recommandation})
+        if recommandation is not None :
+            print({"recommandation":recommandation})
     data={
         "factors":sentences_class,
         "category":labels_class,
@@ -323,3 +322,4 @@ def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other)
         "recommandation":recommandation, 
     }
     return data
+   

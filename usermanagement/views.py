@@ -24,6 +24,7 @@ from drf_yasg import openapi
 from django.contrib.sessions.models import Session
 from django.contrib.auth import logout
 from django.contrib.auth.backends import ModelBackend
+from django.views.decorators.csrf import ensure_csrf_cookie
 @swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
                      operation_summary="API TO GET LIST OF Users",
                      operation_description="API TO GET LIST OF Users",)
@@ -190,7 +191,7 @@ class EmailBackend(ModelBackend):
         type=openapi.TYPE_OBJECT,
         required=['email', 'password'],
         properties={
-            'email': openapi.Schema(type=openapi.TYPE_STRING),
+            'email': openapi.Schema(type=openapi.TYPE_STRING,format='email'),
             'password': openapi.Schema(type=openapi.TYPE_STRING),
         }
     ),
@@ -199,26 +200,24 @@ class EmailBackend(ModelBackend):
     operation_description="This API helps us to authenticate "
 )
 
+
 @api_view(['POST'])
-@permission_classes([AllowAny]) 
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
 def authentication(request):
     if request.method == 'POST':
-        data=request.data
-        email = data['email']
-        password = data['password']
+        data = request.data
+        email = data.get('email')
+        password = data.get('password')
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            # Redirect to a success page.
-            return JsonResponse({"msg": "User logged successfully!"},status=200)
-            # return redirect('success_page')
+            response = JsonResponse({"msg": "User logged successfully!",
+                                     "csrftoken":request.COOKIES.get('csrftoken')}, status=200)
+            return response
         else:
-            # Return an 'invalid login' error message.
-            # return render(request, 'login.html', {'error': 'Invalid email or password'})
-            return JsonResponse({"msg": "Invalid email or password!"},status=200)
-            
-    # else:
-    #     return render(request, 'login.html')
+            return JsonResponse({"msg": "Invalid email or password!"}, status=200)            
+  
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])  
 def logout_view(request):

@@ -1,28 +1,14 @@
-from django.shortcuts import render
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from benchmarking.funcrions import get_info_campany
+from benchmarking.functions import get_info_campany
 from esganalyse.models import Campany
-from usermanagement.functions import CustomValidator
-from usermanagement.models import User
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-
-from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse
 import json
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth.hashers import make_password
+from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
-from django.core.exceptions import ValidationError
 from drf_yasg import openapi
-from django.contrib.sessions.models import Session
 from django.contrib.auth import logout
-from django.contrib.auth.backends import ModelBackend
+from django.core import serializers
 
 @swagger_auto_schema(
         method='POST',
@@ -60,3 +46,23 @@ def get_benchmark_info(request):
             return JsonResponse({f"{campany1}_{date1}":list_infos1,f"{campany2}_{date2}":list_infos2},status=200)
         else:
             return JsonResponse({"msg":"Veuillez remplir toutes les informations!"},status=400)
+        
+        
+        
+@swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
+                     operation_summary="API TO GET LIST OF CAMPANIES",
+                     operation_description="API TO GET LIST OF CAMPANIES",)
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def get_campanies(request):
+    """Get campanies from database"""
+    if (request.method == 'GET'):
+        campany_object= Campany.objects.all()
+        campany_dict = serializers.serialize("json", campany_object)
+        res = json.loads(campany_dict)
+        list_campanies=[]
+        for i in range(0, len(res)):
+            print(res[i])
+            list_campanies.append(res[i]['fields']['campany_name'])
+        return JsonResponse({"campanies":list_campanies},status=200)

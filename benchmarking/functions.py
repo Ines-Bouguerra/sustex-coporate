@@ -16,3 +16,5 @@ def get_info_campany(campany_name,date):
         res[i]['fields']['id'] = campany_id
         list_infos.append(res[i]['fields'])
     return list_infos
+
+

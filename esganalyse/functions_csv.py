@@ -147,7 +147,6 @@ def calculate_esg_number(df, column_gov, column_soc, column_env):
     if column_env:
         process_columns(column_env, "environmental", e_score_val=0)
 
-    # Convert the results list to a DataFrame
     df_res = pd.DataFrame(results)
 
     return df_res
@@ -158,6 +157,5 @@ def read_all_sheets(file_path):
     sheet_names = excel_file.sheet_names
     data_frames = {}
 
-    # Read each sheet into a DataFrame
     for sheet in sheet_names:
         data_frames[sheet] = pd.read_excel(file_path, sheet_name=sheet)
