@@ -12,7 +12,7 @@ from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
 from esganalyse.functions import analyse_sentence, extract_from_pdf,extract_text_page, generate_recommendation, get_content_first, get_date_report, get_file_extension, init_models,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
-from transformers import pipeline
+
 from django.core import serializers
 
 logger = logging.getLogger(__name__) 

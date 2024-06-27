@@ -29,8 +29,10 @@ DEBUG = os.getenv('DEBUG')
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
  'http://*',
+ 'https://*',
+ 
 ]
-ALLOWED_HOSTS = ['*', '.vercel.app']
+ALLOWED_HOSTS = ['*', '.vercel.app','https://efae-41-226-37-234.ngrok-free.app']
 DEBUG=True
 
 # Application definition
