@@ -10,7 +10,8 @@ from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
 from transformers import logging
-
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
 logging.set_verbosity_error()
 # Download nltk punkt package for tokenizers
 # nltk.download('punkt')
@@ -64,12 +65,6 @@ def get_date_report(text):
     campany_name=answer['answer'] if answer is not None else None
     return campany_name
 
-
-# def translate_text(text, language):
-#     """Function to translate text to be compatible with models"""
-#     translated = GoogleTranslator(source='auto', target=language).translate(text)
-#     print(translated)
-#     return translated
 def translate_text(text, language):
     """Function to translate text to be compatible with models"""
     try:
@@ -148,12 +143,23 @@ def get_word_entity(text):
     all_entities+=outputs
     return all_entities
 
-# def get_campany_name(output):
-#     """function to use NER algorithm to GET word entities"""
-#     org_entities = [entity['word'] for entity in output if entity['entity_group'] == 'ORG']
-#     most_common_word = max(set(org_entities), key=org_entities.count)
-#     return most_common_word
-
+def test_sentence(sentence):
+    """function to test sentence and eliminate special caracters"""
+    print({"sentence": sentence})
+    if sentence is not None:
+        stop_words = set(stopwords.words('english'))
+        words = word_tokenize(sentence)
+        if all(re.match(r'^\W+$', word) for word in words):
+            return True
+        if all(word.lower() in stop_words for word in words):
+            return True
+        if all(word.isdigit() for word in words):
+            return True
+        if all(re.match(r'^\W+$', word) or word.isdigit() for word in words):
+            return True
+        return False
+    else:
+        return True
 def classify_sentence_label(text,pipe_env,pipe_soc,pipe_gov,pipe_esg):
     """function to classify sentence labes as E,S,G"""
     label=None
@@ -287,7 +293,8 @@ def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other,
     """function to analyse sentences and get information about each factor in the sentence"""
     t_translate=translate_text(t,"en")
     recommandation=None
-    if t_translate is not None:
+    print({"t_translate":t_translate,"testtt":test_sentence(t_translate)})
+    if t_translate is not None and  test_sentence(t_translate) is False:
         print({"t":t,"translate":t_translate})
         sentences_class.append(t)
         label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)

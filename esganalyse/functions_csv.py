@@ -135,7 +135,12 @@ def calculate_esg_number(df, column_gov, column_soc, column_env):
             s_score = s_score_val if category != "social" else round(df[col].mean(), 2)
             g_score = g_score_val if category != "governance" else round(df[col].mean(), 2)
             esg = round(df[col].mean(), 2)
-            results.append({"factors": col, "category": category, "e_score": e_score, "s_score": s_score, "g_score": g_score, "esg_score": esg})
+            results.append({"factors": col, 
+                            "category": category, 
+                            "e_score": e_score,
+                            "s_score": s_score, 
+                            "g_score": g_score, 
+                            "esg_score": esg})
 
     # Process each category
     if column_gov:
