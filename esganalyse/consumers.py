@@ -35,7 +35,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         file_path = text_data_json.get('file_path')
         print("save uploaded file",file_path)
         saved_file_path=file_path
-        saved_file_path=saved_file_path.strip('/')
+        saved_file_path=saved_file_path.strip('/')  if saved_file_path is not None else None
         if saved_file_path is not None:
             if get_file_extension(saved_file_path)==".pdf":
                 asyncio.create_task(self.get_info_pdf(saved_file_path))
@@ -47,13 +47,13 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             msg = text_data_json.get('msg',None)
             year = text_data_json.get('year',None)
             campany_name = text_data_json.get('campany_name',None)
-            if msg is not None and year is not None and campany_name is not None :
-                campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
-                campany_dict = serializers.serialize("json", [campany])  # Serializing single object
-                res = json.loads(campany_dict)
-                campany_json = res[0]['fields']
-                campany_json['id'] = res[0]['pk']
-                asyncio.create_task(self.response_msg(msg,campany_json))
+        if msg is not None and year is not None and campany_name is not None :
+            campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
+            campany_dict = serializers.serialize("json", [campany])  # Serializing single object
+            res = json.loads(campany_dict)
+            campany_json = res[0]['fields']
+            campany_json['id'] = res[0]['pk']
+            asyncio.create_task(self.response_msg(msg,campany_json))
     
             
     

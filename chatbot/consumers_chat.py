@@ -1,5 +1,6 @@
 
 import asyncio
+from asgiref.sync import sync_to_async
 import logging
 import json
 import pandas as pd
@@ -26,7 +27,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         campany_name = text_data_json['campany_name']
         msg = text_data_json['msg']
         year = text_data_json['year']
-        campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
+        print(campany_name,year,msg)
+        campany = await sync_to_async(Campany.objects.get)(Q(campany_name=campany_name) & Q(year=year))
         campany_dict = serializers.serialize("json", [campany])  # Serializing single object
         res = json.loads(campany_dict)
         campany_json = res[0]['fields']

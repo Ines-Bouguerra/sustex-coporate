@@ -10,6 +10,10 @@ from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
 from transformers import logging
+import nltk
+
+# Ensure stopwords are downloaded before any other processing
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 logging.set_verbosity_error()
