@@ -25,6 +25,7 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth import logout
 from django.contrib.auth.backends import ModelBackend
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_protect
 @swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
                      operation_summary="API TO GET LIST OF Users",
                      operation_description="API TO GET LIST OF Users",)
@@ -201,9 +202,27 @@ class EmailBackend(ModelBackend):
 )
 
 
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# # @ensure_csrf_cookie
+# def authentication(request):
+#     if request.method == 'POST':
+#         data = request.data
+#         email = data.get('email')
+#         password = data.get('password')
+#         user = authenticate(request, email=email, password=password)
+#         if user is not None:
+#             login(request, user)
+#             print(request.COOKIES)
+#             response = JsonResponse({"msg": "User logged successfully!",
+#                                      "csrftoken":request.COOKIES.get('csrftoken')}, status=200)
+#             return response
+#         else:
+#             return JsonResponse({"msg": "Invalid email or password!"}, status=200)            
+ 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@ensure_csrf_cookie
+# @csrf_protect
 def authentication(request):
     if request.method == 'POST':
         data = request.data
@@ -212,12 +231,12 @@ def authentication(request):
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            response = JsonResponse({"msg": "User logged successfully!",
-                                     "csrftoken":request.COOKIES.get('csrftoken')}, status=200)
+            response = JsonResponse({"msg": "User logged in successfully!"}, status=200)
+            # Set CSRF cookie in the response
+            response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE'))
             return response
         else:
-            return JsonResponse({"msg": "Invalid email or password!"}, status=200)            
-  
+            return JsonResponse({"msg": "Invalid email or password!"}, status=400) 
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])  
 def logout_view(request):
