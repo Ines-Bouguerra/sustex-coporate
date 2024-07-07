@@ -4,7 +4,7 @@ from datasets import load_dataset, Features, Value
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from transformers import pipeline
 from deep_translator import GoogleTranslator
-
+from celery import shared_task
 # Load tokenizer and model
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 model = GPT2LMHeadModel.from_pretrained('gpt2')
@@ -174,7 +174,35 @@ data = {
     "total_s_score": 67.77,
     "total_g_score": 0,
     "total_esg_score": 24.62
-}   
+}  
+# @shared_task(ignore_result=True)
+# def fine_tune_model_task(data):
+#     print("hello world finee tuneee !!")
+#     file_path="data.json"
+#     model_fine_tune="fine-tuned-gpt2"
+#     list_question=define_question(data)
+#     save_file_json(file_path,list_question) 
+#     train_dataset,eval_dataset=split_data(file_path)
+#     fine_tune_model(train_dataset,eval_dataset,model_fine_tune)  
+@shared_task(ignore_result=True)
+def fine_tune_model_task(data):
+    try:
+        # Example implementation of the task function
+        # Ensure 'data' is properly processed here
+        file_path = "data.json"
+        model_fine_tune = "fine-tuned-gpt2"
+        
+        list_question = define_question(data)
+        save_file_json(file_path, list_question)
+        train_dataset, eval_dataset = split_data(file_path)
+        fine_tune_model(train_dataset, eval_dataset, model_fine_tune)
+        
+    except Exception as e:
+        # Handle exceptions properly based on your application's needs
+        print(f"Error in fine_tune_model_task: {e}")
+
+
+
 # list_question=define_question(data)
 # print(list_question)
 # save_file_json("data.json",list_question)        

@@ -293,9 +293,8 @@ def analyse_sentence(t,pipe_env,pipe_soc,pipe_gov,pipe_esg,pipe_sent,pipe_other,
     """function to analyse sentences and get information about each factor in the sentence"""
     t_translate=translate_text(t,"en")
     recommandation=None
-    print({"t_translate":t_translate,"testtt":test_sentence(t_translate)})
     if t_translate is not None and  test_sentence(t_translate) is False:
-        print({"t":t,"translate":t_translate})
+        print({"t_translate":t_translate,"testtt":test_sentence(t_translate)})
         sentences_class.append(t)
         label,score_class=classify_sentence_label(t_translate,pipe_env,pipe_soc,pipe_gov,pipe_esg)
         labels_class.append(label)

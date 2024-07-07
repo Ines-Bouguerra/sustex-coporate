@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('campany_name', models.CharField(max_length=200, null=True)),
-                ('year', models.IntegerField(null=True)),
+                ('year', models.CharField(max_length=200, null=True)),
                 ('total_env_label', models.IntegerField(null=True)),
                 ('total_soc_label', models.IntegerField(null=True)),
                 ('total_gov_label', models.IntegerField(null=True)),

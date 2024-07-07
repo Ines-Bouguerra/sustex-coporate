@@ -6,14 +6,14 @@ import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
-from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data
+from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data,fine_tune_model_task
 from esganalyse.functions_csv import calculate_based_columns, calculate_based_lignes, calculate_esg_number, read_from_csv, read_from_xlsx, read_sheet_names
 from .serializers import CampanySerializer,CampanyDetailsSerializer
 from .models import Campany
 from django.db.models import Q
 from esganalyse.functions import analyse_sentence, extract_from_pdf,extract_text_page, generate_recommendation, get_content_first, get_date_report, get_file_extension, init_models,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
-
 from django.core import serializers
+from celery import shared_task
 
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
@@ -97,14 +97,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 print({"error in adding company": dashboard_serializer.errors})
         
        
-             
-    async def fine_tune_model_task(self,data):
-        file_path="data.json"
-        model_fine_tune="fine-tuned-gpt2"
-        list_question=define_question(data)
-        save_file_json(file_path,list_question) 
-        train_dataset,eval_dataset=split_data(file_path)
-        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
+    # @shared_task
+    # async def fine_tune_model_task(self,data):
+    #     file_path="data.json"
+    #     model_fine_tune="fine-tuned-gpt2"
+    #     list_question=define_question(data)
+    #     save_file_json(file_path,list_question) 
+    #     train_dataset,eval_dataset=split_data(file_path)
+    #     fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
           
     async def get_info_pdf(self,path):
         sentences_class=[]
@@ -116,7 +116,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         text_first=get_content_first(0, 4,doc)
         campany_name=get_campany_name(text_first)
         year=get_date_report(text_first)
-        print({"campany_name":campany_name,"year":int(year)})
+        print({"campany_name":campany_name,"year":year})
         for page in doc:
             text=extract_text_page(page)
             sentences= list_to_string(text)
@@ -162,7 +162,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 await self.send(json.dumps(all_data))
                 await self.save_system_usage(all_data_sentiment,document_data)
                 await asyncio.sleep(1)
-        await asyncio.create_task(self.fine_tune_model_task(document_data))
+                # self.fine_tune_model_task(document_data)
+                fine_tune_model_task.delay(document_data)
                 
     async def get_info_csv(self,path):
         pipe_env,pipe_soc,pipe_gov,_,_,pipe_esg=init_models()
