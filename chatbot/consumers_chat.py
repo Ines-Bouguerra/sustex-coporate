@@ -9,8 +9,9 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import torch
 from django.db.models import Q
 from django.core import serializers
-from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data
+from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data, translate_text
 from esganalyse.models import Campany
+import re
 logger = logging.getLogger(__name__) 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -24,17 +25,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        campany_name = text_data_json['campany_name']
-        msg = text_data_json['msg']
-        year = text_data_json['year']
-        print(campany_name,year,msg)
-        campany = await sync_to_async(Campany.objects.get)(Q(campany_name=campany_name) & Q(year=year))
-        campany_dict = serializers.serialize("json", [campany])  # Serializing single object
-        res = json.loads(campany_dict)
-        campany_json = res[0]['fields']
-        campany_json['id'] = res[0]['pk']
+        text_data_json=text_data_json['data']
+        msg = text_data_json.get('msg',None)
         if msg is not None:
-            asyncio.create_task(self.response_msg(msg,campany_json))
+            model_fine_tune = "fine-tuned-gpt2"
+            asyncio.create_task(self.response_msg(msg,model_fine_tune))
     
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -46,12 +41,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
    
 
        
-    async def response_msg(self,msg,data):
-        file_path="data.json"
-        model_fine_tune="fine-tuned-gpt2"
-        list_question=define_question(data)
-        save_file_json(file_path,list_question) 
-        train_dataset,eval_dataset=split_data(file_path)
-        fine_tune_model(train_dataset,eval_dataset,model_fine_tune)
+    async def response_msg(self,msg,model_fine_tune):
+        msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
-        await self.send(json.dumps(response))
+        print(response)
+        generated_text=response[0]['generated_text']
+        match = re.search(r'Question:.*?\nAnswer: (.*?)(Answer:|$)', generated_text, re.DOTALL)
+        # Extract the first answer if the pattern is found
+        first_answer = match.group(1).strip() if match else None
+        await self.send(json.dumps(first_answer))

@@ -14,7 +14,7 @@ from django.db.models import Q
 from esganalyse.functions import analyse_sentence, extract_from_pdf,extract_text_page, generate_recommendation, get_content_first, get_date_report, get_file_extension, init_models,list_to_string,proprocess_text_data,get_model,classify_sentence_label,get_sentiment,get_word_entity,get_campany_name,calculate_total_esg,calculate_esg_scores,get_classes,get_sent_env,get_sent_soc,get_sent_gov, save_uploaded_file, translate_text
 from django.core import serializers
 from celery import shared_task
-
+import re
 logger = logging.getLogger(__name__) 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -33,27 +33,24 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         print(text_data_json)
         text_data_json=text_data_json['data']
         file_path = text_data_json.get('file_path')
+        msg = text_data_json.get('msg',None)
         print("save uploaded file",file_path)
         saved_file_path=file_path
         saved_file_path=saved_file_path.strip('/')  if saved_file_path is not None else None
         if saved_file_path is not None:
             if get_file_extension(saved_file_path)==".pdf":
-                asyncio.create_task(self.get_info_pdf(saved_file_path))
+                all_data=await self.get_info_pdf(saved_file_path)
             elif get_file_extension(saved_file_path)==".csv":
-                asyncio.create_task(self.get_info_csv(saved_file_path))
+                all_data=await self.get_info_csv(saved_file_path)
             elif get_file_extension(saved_file_path)==".xlsx":
-                asyncio.create_task(self.get_info_xlsx(saved_file_path))
-                
-            msg = text_data_json.get('msg',None)
-            year = text_data_json.get('year',None)
-            campany_name = text_data_json.get('campany_name',None)
-        if msg is not None and year is not None and campany_name is not None :
-            campany=Campany.objects.get(Q(campany_name=campany_name)&Q(year=year))
-            campany_dict = serializers.serialize("json", [campany])  # Serializing single object
-            res = json.loads(campany_dict)
-            campany_json = res[0]['fields']
-            campany_json['id'] = res[0]['pk']
-            asyncio.create_task(self.response_msg(msg,campany_json))
+               all_data=await self.get_info_xlsx(saved_file_path)
+            await self.send(json.dumps(all_data))
+            await self.save_system_usage(all_data['all_data_sentiment'],all_data['document_data'])
+            await asyncio.sleep(1)
+            fine_tune_model_task.delay(all_data['document_data'])
+        if msg is not None :
+            model_fine_tune = "fine-tuned-gpt2"
+            asyncio.create_task(self.response_msg(msg,model_fine_tune))
     
             
     
@@ -159,11 +156,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 current_time = time.strftime("%Y-%m-%d %H:%M:%S")
                 unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
                 all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data,"timestamp":unix_timestamp}
-                await self.send(json.dumps(all_data))
-                await self.save_system_usage(all_data_sentiment,document_data)
-                await asyncio.sleep(1)
-                # self.fine_tune_model_task(document_data)
-                fine_tune_model_task.delay(document_data)
+                return all_data
+                
                 
     async def get_info_csv(self,path):
         pipe_env,pipe_soc,pipe_gov,_,_,pipe_esg=init_models()
@@ -179,8 +173,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
         all_data={"json_data":json_data,"timestamp":unix_timestamp}
-        await self.send(json.dumps(all_data))
-        await asyncio.sleep(1)
+        return all_data
+        # await self.send(json.dumps(all_data))
+        # await asyncio.sleep(1)
         
         
     async def get_info_xlsx(self,path):
@@ -199,10 +194,16 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
             unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
             all_data={"json_data":json_data,"timestamp":unix_timestamp}
-            await self.send(json.dumps(all_data))
-            await asyncio.sleep(1)
+            return all_data
+            # await self.send(json.dumps(all_data))
+            # await asyncio.sleep(1)
              
     async def response_msg(self,msg,model_fine_tune):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
-        await self.send(json.dumps(response))
+        print(response)
+        generated_text=response[0]['generated_text']
+        match = re.search(r'Question:.*?\nAnswer: (.*?)(Answer:|$)', generated_text, re.DOTALL)
+        # Extract the first answer if the pattern is found
+        first_answer = match.group(1).strip() if match else None
+        await self.send(json.dumps(first_answer))
