@@ -26,32 +26,63 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         )
         # asyncio.create_task(self.send(json.dumps({"msg":"hello from backend!"})))
         
+    # async def receive(self, text_data):
+    #     # print(self.scope['file'])
+    #     print(text_data)
+    #     text_data_json = json.loads(text_data)
+    #     print(text_data_json)
+    #     text_data_json=text_data_json['data']
+    #     file_path = text_data_json.get('file_path')
+    #     msg = text_data_json.get('msg',None)
+    #     print("save uploaded file",file_path)
+    #     saved_file_path=file_path
+    #     saved_file_path=saved_file_path.strip('/')  if saved_file_path is not None else None
+    #     if saved_file_path is not None:
+    #         if get_file_extension(saved_file_path)==".pdf":
+    #             all_data=await self.get_info_pdf(saved_file_path)
+    #         elif get_file_extension(saved_file_path)==".csv":
+    #             all_data=await self.get_info_csv(saved_file_path)
+    #         elif get_file_extension(saved_file_path)==".xlsx":
+    #            all_data=await self.get_info_xlsx(saved_file_path)
+    #         await self.send(json.dumps(all_data))
+    #         await self.save_system_usage(all_data['all_data_sentiment'],all_data['document_data'])
+    #         await asyncio.sleep(1)
+    #         fine_tune_model_task.delay(all_data['document_data'])
+    #     if msg is not None :
+    #         model_fine_tune = "fine-tuned-gpt2"
+    #         asyncio.create_task(self.response_msg(msg,model_fine_tune))
     async def receive(self, text_data):
-        # print(self.scope['file'])
         print(text_data)
         text_data_json = json.loads(text_data)
         print(text_data_json)
-        text_data_json=text_data_json['data']
+        text_data_json = text_data_json['data']
         file_path = text_data_json.get('file_path')
-        msg = text_data_json.get('msg',None)
-        print("save uploaded file",file_path)
-        saved_file_path=file_path
-        saved_file_path=saved_file_path.strip('/')  if saved_file_path is not None else None
+        msg = text_data_json.get('msg', None)
+        print("save uploaded file", file_path)
+        saved_file_path = file_path
+        saved_file_path = saved_file_path.strip('/') if saved_file_path is not None else None
+
+        async def process_file(saved_file_path):
+            if get_file_extension(saved_file_path) == ".pdf":
+                await self.get_info_pdf(saved_file_path)
+            elif get_file_extension(saved_file_path) == ".csv":
+                await self.get_info_csv(saved_file_path)
+            elif get_file_extension(saved_file_path) == ".xlsx":
+               await self.get_info_xlsx(saved_file_path)
+
         if saved_file_path is not None:
-            if get_file_extension(saved_file_path)==".pdf":
-                all_data=await self.get_info_pdf(saved_file_path)
-            elif get_file_extension(saved_file_path)==".csv":
-                all_data=await self.get_info_csv(saved_file_path)
-            elif get_file_extension(saved_file_path)==".xlsx":
-               all_data=await self.get_info_xlsx(saved_file_path)
-            await self.send(json.dumps(all_data))
-            await self.save_system_usage(all_data['all_data_sentiment'],all_data['document_data'])
-            await asyncio.sleep(1)
-            fine_tune_model_task.delay(all_data['document_data'])
-        if msg is not None :
+            await process_file(saved_file_path)
+
+        if msg is not None:
+            print("helloooooo")
             model_fine_tune = "fine-tuned-gpt2"
-            asyncio.create_task(self.response_msg(msg,model_fine_tune))
-    
+            response_task = asyncio.create_task(self.response_msg(msg, model_fine_tune))
+            await response_task
+
+            # Re-run the file processing part
+            if saved_file_path is not None:
+                await process_file(saved_file_path)
+
             
     
     
@@ -156,7 +187,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 current_time = time.strftime("%Y-%m-%d %H:%M:%S")
                 unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
                 all_data={"all_data_sentiment":all_data_sentiment,"document_data":document_data,"timestamp":unix_timestamp}
-                return all_data
+                await self.send(text_data=json.dumps(all_data))
+                await self.save_system_usage(all_data['all_data_sentiment'], all_data['document_data'])
+                await asyncio.sleep(1)
+                fine_tune_model_task.delay(all_data['document_data'])
                 
                 
     async def get_info_csv(self,path):
@@ -173,9 +207,8 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
         all_data={"json_data":json_data,"timestamp":unix_timestamp}
-        return all_data
-        # await self.send(json.dumps(all_data))
-        # await asyncio.sleep(1)
+        await self.send(json.dumps(all_data))
+        await asyncio.sleep(1)
         
         
     async def get_info_xlsx(self,path):
@@ -194,16 +227,15 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
             unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
             all_data={"json_data":json_data,"timestamp":unix_timestamp}
-            return all_data
-            # await self.send(json.dumps(all_data))
-            # await asyncio.sleep(1)
+            await self.send(json.dumps(all_data))
+            await asyncio.sleep(1)
              
     async def response_msg(self,msg,model_fine_tune):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
-        print(response)
         generated_text=response[0]['generated_text']
         match = re.search(r'Question:.*?\nAnswer: (.*?)(Answer:|$)', generated_text, re.DOTALL)
         # Extract the first answer if the pattern is found
         first_answer = match.group(1).strip() if match else None
+        print(first_answer)
         await self.send(json.dumps(first_answer))

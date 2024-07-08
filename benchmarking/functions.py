@@ -5,6 +5,7 @@ from django.core import serializers
     
 def get_info_campany(campany_name,date):   
     """function to get info about campany for a given campany for benchmarking""" 
+    print(campany_name,date)
     campany_object= Campany.objects.filter(Q(campany_name=campany_name) & Q(year=date))
     campany_dict = serializers.serialize("json", campany_object)
     res = json.loads(campany_dict)
