@@ -125,14 +125,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 print({"error in adding company": dashboard_serializer.errors})
         
        
-    # @shared_task
-    # async def fine_tune_model_task(self,data):
-    #     file_path="data.json"
-    #     model_fine_tune="fine-tuned-gpt2"
-    #     list_question=define_question(data)
-    #     save_file_json(file_path,list_question) 
-    #     train_dataset,eval_dataset=split_data(file_path)
-    #     fine_tune_model(train_dataset,eval_dataset,model_fine_tune)    
+      
           
     async def get_info_pdf(self,path):
         sentences_class=[]
@@ -206,7 +199,28 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         json_data = json.loads(df_res.to_json(orient='records'))
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
-        all_data={"json_data":json_data,"timestamp":unix_timestamp}
+        total_esg_score,total_e_score,total_s_score,total_g_score=calculate_total_esg(json_data)
+        document_data = {
+                    "campany_name": None,
+                    "year": None,
+                    "total_env_label": 0,
+                    "total_soc_label": 0,
+                    "total_gov_label": 0,
+                    "total_env_neutral": 0,
+                    "total_env_opportunity": 0,
+                    "total_env_risk": 0,
+                    "total_soc_neutral": 0,
+                    "total_soc_opportunity": 0,
+                    "total_soc_risk": 0,
+                    "total_gov_neutral": 0,
+                    "total_gov_opportunity": 0,
+                    "total_gov_risk": 0,
+                    "total_e_score": total_e_score,
+                    "total_s_score": total_s_score,
+                    "total_g_score": total_g_score,
+                    "total_esg_score": total_esg_score
+                }
+        all_data={"all_data_sentiment":json_data,"document_data":document_data,"timestamp":unix_timestamp}
         await self.send(json.dumps(all_data))
         await asyncio.sleep(1)
         
@@ -226,7 +240,28 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             json_data = json.loads(df_res.to_json(orient='records'))
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
             unix_timestamp = int(time.mktime(time.strptime(current_time, "%Y-%m-%d %H:%M:%S")))
-            all_data={"json_data":json_data,"timestamp":unix_timestamp}
+            total_esg_score,total_e_score,total_s_score,total_g_score=calculate_total_esg(json_data)
+            document_data = {
+                        "campany_name": None,
+                        "year": None,
+                        "total_env_label": 0,
+                        "total_soc_label": 0,
+                        "total_gov_label": 0,
+                        "total_env_neutral": 0,
+                        "total_env_opportunity": 0,
+                        "total_env_risk": 0,
+                        "total_soc_neutral": 0,
+                        "total_soc_opportunity": 0,
+                        "total_soc_risk": 0,
+                        "total_gov_neutral": 0,
+                        "total_gov_opportunity": 0,
+                        "total_gov_risk": 0,
+                        "total_e_score": total_e_score,
+                        "total_s_score": total_s_score,
+                        "total_g_score": total_g_score,
+                        "total_esg_score": total_esg_score
+                    }
+            all_data={"all_data_sentiment":json_data,"document_data":document_data,"timestamp":unix_timestamp}
             await self.send(json.dumps(all_data))
             await asyncio.sleep(1)
              
