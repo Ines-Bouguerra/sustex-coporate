@@ -79,9 +79,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             response_task = asyncio.create_task(self.response_msg(msg, model_fine_tune))
             await response_task
 
-            # Re-run the file processing part
-            if saved_file_path is not None:
-                await process_file(saved_file_path)
+            # # Re-run the file processing part
+            # if saved_file_path is not None:
+            #     await process_file(saved_file_path)
 
             
     
@@ -269,8 +269,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
         generated_text=response[0]['generated_text']
-        match = re.search(r'Question:.*?\nAnswer: (.*?)(Answer:|$)', generated_text, re.DOTALL)
-        # Extract the first answer if the pattern is found
-        first_answer = match.group(1).strip() if match else None
-        print(first_answer)
-        await self.send(json.dumps(first_answer))
+        # print("generated_text ===>" ,generated_text)
+        parts = generated_text.split("chatbot:")
+        answer = parts[1]
+        print("firsttt answer ===>" ,answer)
+        
+        await self.send(json.dumps(answer))

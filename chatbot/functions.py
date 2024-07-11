@@ -150,7 +150,8 @@ def get_response(model_fine_tune,question) :
     model = GPT2LMHeadModel.from_pretrained(model_fine_tune)
     tokenizer = GPT2Tokenizer.from_pretrained(model_fine_tune)
     qa_pipeline = pipeline('text-generation', model=model, tokenizer=tokenizer)
-    input_text = "Question: " + question + "\nAnswer:"
+    input_text = "You: " + question + " \n chatbot:"
+    # input_text=question +"\n"
 
     # Set `max_new_tokens` to avoid exceeding max length
     return qa_pipeline(input_text, max_new_tokens=50, max_length=512)
