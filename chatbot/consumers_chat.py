@@ -9,7 +9,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import torch
 from django.db.models import Q
 from django.core import serializers
-from chatbot.functions import define_question, fine_tune_model, get_response, save_file_json, split_data, translate_text
+from chatbot.functions import  get_response, translate_text
 from esganalyse.models import Campany
 import re
 logger = logging.getLogger(__name__) 

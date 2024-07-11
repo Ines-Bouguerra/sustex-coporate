@@ -17,10 +17,14 @@ benchmarking/migrations/__pycache__/
 
 /fine-tuned-gpt2/*
 /results/*
+/esganalyse/results/*
 /media/
 # ignore all files in the venv directory
 venv/*
 !venv/
+
+myven/*
+!myven/
 
 # ignore all files in the __pycache__ directory
 __pycache__/*
