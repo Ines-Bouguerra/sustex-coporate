@@ -54,7 +54,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
         generated_text=response[0]['generated_text']
-        # print("generated_text ===>" ,generated_text)
         parts = generated_text.split("chatbot:")
         answer = parts[1]
         print("firsttt answer ===>" ,answer)

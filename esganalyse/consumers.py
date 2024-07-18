@@ -110,7 +110,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             if dashboard_serializer.is_valid():
                 dashboard_instance = dashboard_serializer.save()
                 id_company = dashboard_instance.id
-                print({"id_company": id_company})
                 
                 if id_company is not None:
                     for sentence in all_data_sentiment:
@@ -269,9 +268,6 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         msg=translate_text(msg,"en")
         response=get_response(model_fine_tune,msg)
         generated_text=response[0]['generated_text']
-        # print("generated_text ===>" ,generated_text)
-        parts = generated_text.split("chatbot:")
-        answer = parts[1]
-        print("firsttt answer ===>" ,answer)
-        
+        parts = generated_text.split("Answer")
+        answer = parts[1]        
         await self.send(json.dumps(answer))

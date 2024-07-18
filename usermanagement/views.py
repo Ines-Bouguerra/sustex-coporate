@@ -231,9 +231,9 @@ def authentication(request):
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            response = JsonResponse({"msg": "User logged in successfully!"}, status=200)
-            # Set CSRF cookie in the response
-            response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE'))
+            csrf_token = request.META.get('CSRF_COOKIE')
+            response = JsonResponse({"msg": "User logged in successfully!", "csrf_token": csrf_token}, status=200)
+            response.set_cookie('csrftoken', csrf_token)
             return response
         else:
             return JsonResponse({"msg": "Invalid email or password!"}, status=400) 

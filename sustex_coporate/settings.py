@@ -2,10 +2,8 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Use the appropriate environment file based on DJANGO_ENV environment variable
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
 if DJANGO_ENV == 'production':
     dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.production')
@@ -14,29 +12,24 @@ else:
 
 load_dotenv(dotenv_path)
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-u3+-8octbnjgnqgve73pb2i_*d&_)5fpa=4nq4^oos1797((oe'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG')
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
- 'http://*',
- 'https://*',
- 
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://localhost:3000',
+    'https://127.0.0.1:3000', 
+    'http://localhost:8000',
+    'https://localhost:8000',
 ]
-ALLOWED_HOSTS = ['*', '.vercel.app','https://efae-41-226-37-234.ngrok-free.app']
+CORS_ALLOW_CREDENTIALS = True
+ALLOWED_HOSTS = ['*']
 DEBUG=True
 
 # Application definition
-
 INSTALLED_APPS = [
     'django',
     'sustexcoporateapp',
@@ -55,18 +48,15 @@ INSTALLED_APPS = [
     'chatbot',
     'benchmarking',
     'tasks'
-  
-  
-    
 ]
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",  # You can use other backends as needed
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # existing backend
+    'django.contrib.auth.backends.ModelBackend',
 )
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
@@ -76,12 +66,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 AUTH_USER_MODEL = "usermanagement.User"
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -114,33 +104,20 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'sustex_coporate.asgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.getenv('DB_NAME'),
+        'NAME': "sustex0",
         'CLIENT': {
-            'host': os.getenv('DB_HOST'),
-            'username': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASSWORD'),
+            'host': "mongodb+srv://sustex0.2o8hscb.mongodb.net",
+            'username': "sustexv0",
+            'password': "sustexv0",
         }
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'djongo',
-#         'NAME': 'mydatabase', # Your MongoDB database name
-#     }
-# }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -157,10 +134,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -170,21 +143,13 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 """celery config settings"""
-# settings.py
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

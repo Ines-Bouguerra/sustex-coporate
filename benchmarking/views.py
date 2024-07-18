@@ -4,11 +4,15 @@ from django.http import JsonResponse
 import json
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.contrib.auth import logout
 from django.core import serializers
+from benchmarking.check_compliance import check_compliance, parse_criteria_from_text, extract_text_from_pdf
+from benchmarking.scoring_compliance import check_due_diligence_def, criteria
+import pandas as pd
+
 
 @swagger_auto_schema(
     method='POST',
@@ -35,8 +39,9 @@ from django.core import serializers
     operation_description="API TO GET BENCHMARK INFO OF SELECTED COMPANY AND TIME"
 )
 @api_view(['POST'])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsAuthenticated])
+# @authentication_classes([SessionAuthentication])
+# @permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_benchmark_info(request):
     """Get benchmark info from database"""
     if (request.method == 'POST'):
@@ -56,21 +61,74 @@ def get_benchmark_info(request):
             return JsonResponse({"msg":"Veuillez remplir toutes les informations!"},status=400)
         
         
-        
-@swagger_auto_schema('GET', responses={200: 'Created', 400: 'Bad Request'}, 
-                     operation_summary="API TO GET LIST OF CAMPANIES",
-                     operation_description="API TO GET LIST OF CAMPANIES",)
+
 @api_view(['GET'])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsAuthenticated])
-def get_campanies(request):
-    """Get campanies from database"""
-    if (request.method == 'GET'):
-        campany_object= Campany.objects.all()
-        campany_dict = serializers.serialize("json", campany_object)
-        res = json.loads(campany_dict)
-        list_campanies=[]
-        for i in range(0, len(res)):
-            print(res[i])
-            list_campanies.append(res[i]['fields']['campany_name'])
-        return JsonResponse({"campanies":list_campanies},status=200)
+@permission_classes([AllowAny])
+def get_companies(request):
+    companies = Campany.objects.all()
+    unique_companies = list(set(campany.campany_name for campany in companies))
+    return JsonResponse({"companies": unique_companies}, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_document_compliance(request):
+    """Check document compliance with GDPR and CCPA"""
+    if request.method == 'POST':
+        file = request.FILES.get('file', None)
+        print("file",file)
+        if file:
+            if file.name.endswith('.csv'):
+                data = pd.read_csv(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.xlsx'):
+                data = pd.read_excel(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.pdf'):
+                document_text = extract_text_from_pdf(file)
+            else:
+                return JsonResponse({"msg": "Format de fichier non supporté!"}, status=400)
+            # get file from benchmarking folder
+            criteria_pdf_path = 'benchmarking/SEC.pdf' 
+            pdf_text = extract_text_from_pdf(criteria_pdf_path)
+            criteria = parse_criteria_from_text(pdf_text)
+
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir un fichier!"}, status=400)
+    """Check document compliance with GDPR and CCPA"""
+    if request.method == 'POST':
+        data = request.data
+        document_text = data.get('document_text', None)
+        
+        if document_text:
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir le texte du document!"}, status=400)
+        
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_due_diligence(request):
+    if request.method == 'POST':
+        file = request.FILES.get('file', None)
+        if file:
+            if file.name.endswith('.csv'):
+                data = pd.read_csv(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.xlsx'):
+                data = pd.read_excel(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.pdf'):
+                document_text = extract_text_from_pdf(file)
+            else:
+                return JsonResponse({"msg": "Format de fichier non supporté!"}, status=400)
+            
+            compliance_results = check_due_diligence_def(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        
+        else:
+            return JsonResponse({"msg": "Veuillez fournir un fichier!"}, status=400)
+        
