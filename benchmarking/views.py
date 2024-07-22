@@ -109,6 +109,84 @@ def check_document_compliance(request):
             return JsonResponse({"msg": "Veuillez fournir le texte du document!"}, status=400)
         
 
+# check_eu_compliance API
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_eu_compliance(request):
+    if request.method == 'POST':
+        file = request.FILES.get('file', None)
+        print("file",file)
+        if file:
+            if file.name.endswith('.csv'):
+                data = pd.read_csv(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.xlsx'):
+                data = pd.read_excel(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.pdf'):
+                document_text = extract_text_from_pdf(file)
+            else:
+                return JsonResponse({"msg": "Format de fichier non supporté!"}, status=400)
+            # get file from benchmarking folder
+            criteria_pdf_path = 'benchmarking/UE.pdf' 
+            pdf_text = extract_text_from_pdf(criteria_pdf_path)
+            criteria = parse_criteria_from_text(pdf_text)
+
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir un fichier!"}, status=400)
+    if request.method == 'POST':
+        data = request.data
+        document_text = data.get('document_text', None)
+        
+        if document_text:
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir le texte du document!"}, status=400)
+        
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_fr_compliance(request):
+    if request.method == 'POST':
+        file = request.FILES.get('file', None)
+        print("file",file)
+        if file:
+            if file.name.endswith('.csv'):
+                data = pd.read_csv(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.xlsx'):
+                data = pd.read_excel(file)
+                document_text = data.to_string()
+            elif file.name.endswith('.pdf'):
+                document_text = extract_text_from_pdf(file)
+            else:
+                return JsonResponse({"msg": "Format de fichier non supporté!"}, status=400)
+            # get file from benchmarking folder
+            criteria_pdf_path = 'benchmarking/fr.pdf' 
+            pdf_text = extract_text_from_pdf(criteria_pdf_path)
+            criteria = parse_criteria_from_text(pdf_text)
+            print("criteria",criteria)
+
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir un fichier!"}, status=400)
+    if request.method == 'POST':
+        data = request.data
+        document_text = data.get('document_text', None)
+        
+        if document_text:
+            compliance_results = check_compliance(document_text, criteria)
+            return JsonResponse(compliance_results, status=200)
+        else:
+            return JsonResponse({"msg": "Veuillez fournir le texte du document!"}, status=400)
+        
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def check_due_diligence(request):
